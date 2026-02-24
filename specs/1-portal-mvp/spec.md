@@ -22,7 +22,7 @@ EPAM employees currently lack a centralized, structured channel for submitting i
 
 - **Given** an unregistered user visits the registration page
 - **When** they provide a valid email address and a password meeting minimum requirements
-- **Then** their account is created, they are assigned the "submitter" role by default, and they are redirected to the ideas listing page
+- **Then** their account is created, they are assigned the "submitter" role by default, and they are redirected to an email verification instruction page; after clicking the confirmation link they land on an email-confirmed page
 
 #### S2: User Login
 
@@ -105,7 +105,7 @@ EPAM employees currently lack a centralized, structured channel for submitting i
 
 | ID    | Requirement                                                                                                   | Acceptance Criteria                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| FR-01 | The system shall allow users to register with an email address and password                                    | Account created; user assigned "submitter" role; redirected to ideas listing                       |
+| FR-01 | The system shall allow users to register with an email address and password                                    | Account created; user assigned "submitter" role; redirected to verification page; confirmation link resolves to a dedicated success page |
 | FR-02 | The system shall allow registered users to log in with email and password                                      | Valid credentials grant access; invalid credentials show an error                                  |
 | FR-03 | The system shall allow authenticated users to log out                                                         | Session terminated; user redirected to login page                                                  |
 | FR-04 | The system shall protect all routes except login and registration behind authentication                        | Unauthenticated requests to protected routes redirect to login                                    |

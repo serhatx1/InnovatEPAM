@@ -21,9 +21,12 @@ export default function RegisterPage() {
     setLoading(true);
     const supabase = createClient();
 
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+      },
     });
 
     setLoading(false);
@@ -33,8 +36,15 @@ export default function RegisterPage() {
       return;
     }
 
-    toast.success("Registration successful. Redirecting...");
-    router.push("/ideas");
+    if (data.session) {
+      toast.success("Registration successful. Redirecting...");
+      router.push("/ideas");
+      router.refresh();
+      return;
+    }
+
+    toast.success("Check your email to confirm your account.");
+    router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
     router.refresh();
   }
 

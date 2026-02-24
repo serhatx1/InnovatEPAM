@@ -210,13 +210,14 @@ All unknowns resolved — see [research.md](research.md) for full details.
 
 #### T6: Refactor auth pages (login, register) with shadcn components
 
-**Files**: `src/app/auth/login/page.tsx`, `src/app/auth/register/page.tsx`
+**Files**: `src/app/auth/login/page.tsx`, `src/app/auth/register/page.tsx`, `src/app/auth/verify-email/page.tsx`, `src/app/auth/confirmed/page.tsx`, `src/app/auth/confirm/route.ts`
 **Spec refs**: NFR-01, NFR-02, NFR-03, FR-01, FR-02
 
 1. Replace raw HTML form elements with shadcn `Card`, `Input`, `Button`, `Label`, `Form` components.
 2. Add `Toast` notifications for login/register errors and success.
 3. Clean minimalist layout: centered card, generous padding, neutral colors.
-4. **Verify**: Auth pages render with shadcn components; login/register flows work end-to-end.
+4. Add email confirmation flow: redirect post-signup to verify-email page, handle callback in `/auth/confirm`, show success page at `/auth/confirmed`.
+5. **Verify**: Auth pages render with shadcn components; login/register/confirmation flows work end-to-end.
 
 ---
 

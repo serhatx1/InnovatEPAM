@@ -70,6 +70,7 @@
 - [X] Replace raw HTML form elements with shadcn Card, Input, Button, Label, Form
 - [X] Add Toast notifications for login/register errors and success
 - [X] Clean minimalist layout: centered card, generous padding, neutral colors
+- [X] Add email confirmation flow pages (`/auth/verify-email`, `/auth/confirmed`) and callback route (`/auth/confirm`)
 - [X] Verify auth pages render with shadcn components; flows work end-to-end
 
 ### T7: Refactor idea submission form with shadcn components

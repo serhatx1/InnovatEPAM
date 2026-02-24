@@ -69,10 +69,12 @@ npx vitest run
 ### Submit an Idea (Employee)
 
 1. Register at `/auth/register` (role defaults to `submitter`)
-2. Navigate to `/ideas/new`
-3. Fill title (5–100 chars), description (20–1000 chars), select category
-4. Optionally attach a file (PDF/PNG/JPG/DOCX, max 5 MB)
-5. Submit → redirects to `/ideas`
+2. After signup, open `/auth/verify-email` and confirm from your inbox link
+3. Confirmation redirects to `/auth/confirmed`; continue to `/auth/login`
+4. Navigate to `/ideas/new`
+5. Fill title (5–100 chars), description (20–1000 chars), select category
+6. Optionally attach a file (PDF/PNG/JPG/DOCX, max 5 MB)
+7. Submit → redirects to `/ideas`
 
 ### Review an Idea (Admin)
 
