@@ -4,7 +4,7 @@ An internal employee innovation management platform where submitters propose ide
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router) + React 19 + TypeScript 5
+- **Framework**: Next.js 16 (App Router) + React 19 + TypeScript 5
 - **Backend**: Supabase (Postgres, Auth, Storage)
 - **Validation**: Zod
 - **Testing**: Vitest + React Testing Library
@@ -32,14 +32,24 @@ Create a `.env.local` file in the project root:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
-### 3. Apply database schema
+`SUPABASE_SERVICE_ROLE_KEY` is required for some integration test scenarios.
 
-Run the SQL migration in your Supabase SQL Editor:
+### 3. Apply database migrations
+
+Using Supabase CLI (recommended):
+
+```bash
+npx supabase db push
+```
+
+Or run SQL files manually in order via Supabase SQL Editor:
 
 ```
 supabase/migrations/001_create_schema.sql
+supabase/migrations/002_fix_rls_policies.sql
 ```
 
 This creates:
@@ -48,6 +58,7 @@ This creates:
 - `idea-attachments` storage bucket
 - Auto-profile-creation trigger on sign-up
 - `updated_at` trigger for ideas
+- RLS policy fixes for idea visibility and admin policy checks
 
 ### 4. Run development server
 
@@ -60,7 +71,17 @@ Open [http://localhost:3000](http://localhost:3000).
 ### 5. Run tests
 
 ```bash
+# Unit tests
+npx vitest run tests/unit
+
+# Full test suite
 npm test
+```
+
+Optional checks:
+
+```bash
+npm run lint
 ```
 
 ## Project Structure
@@ -71,7 +92,7 @@ src/
 │   ├── admin/review/      # Admin review dashboard
 │   ├── api/
 │   │   ├── ideas/          # POST/GET ideas
-│   │   └── admin/ideas/    # PATCH status (admin)
+│   │   └── admin/ideas/    # PATCH /api/admin/ideas/[id]/status (admin)
 │   ├── auth/               # Login, Register, Logout
 │   ├── ideas/              # List, Detail, New Idea
 │   └── layout.tsx
@@ -103,7 +124,7 @@ tests/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/ideas` | List ideas (own or all for admin) |
+| GET | `/api/ideas` | List all ideas for authenticated users |
 | POST | `/api/ideas` | Create idea (multipart/form-data) |
 | GET | `/api/ideas/[id]` | Get idea detail |
 | PATCH | `/api/admin/ideas/[id]/status` | Update idea status (admin only) |

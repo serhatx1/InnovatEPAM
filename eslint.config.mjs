@@ -7,6 +7,7 @@ export default [
       "build/**",
       "dist/**",
       "coverage/**",
+      "**/*.min.js",
     ],
   },
 ];
