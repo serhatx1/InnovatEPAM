@@ -6,7 +6,7 @@
 
 ## Decision
 
-Use Next.js 15 with the App Router pattern as the sole application framework.
+Use Next.js 16.1 with the App Router pattern as the sole application framework.
 
 ## Context
 

@@ -1,4 +1,4 @@
-# ADR-003: Testing Strategy — Vitest + React Testing Library + Playwright
+# ADR-003: Testing Strategy — Vitest + React Testing Library
 
 **Status**: Accepted  
 **Date**: 2026-02-24  
@@ -7,7 +7,7 @@
 ## Decision
 
 - **Unit / Integration tests**: Vitest with React Testing Library
-- **E2E smoke tests**: Playwright (critical paths only)
+- **E2E smoke tests**: Optional; add Playwright in a follow-up phase if needed
 
 ## Context
 
@@ -25,11 +25,11 @@ The project guide requires passing tests, Testing Principles in the constitution
 
 - Vitest aligns with the Vite-compatible tooling ecosystem and runs TypeScript natively.
 - React Testing Library promotes testing user behavior over implementation details.
-- Playwright covers critical user flows (register → login → submit idea → admin review) without heavyweight setup.
-- This combination is already specified in `plan.md`.
+- Current repository already has comprehensive Vitest unit/integration coverage and does not include Playwright config yet.
+- E2E coverage can be introduced incrementally without blocking MVP completion.
 
 ## Consequences
 
-- Test files live under `tests/unit/`, `tests/integration/`, and `tests/e2e/`.
+- Test files live under `tests/unit/` and `tests/integration/`.
 - `vitest.config.ts` configures path aliases matching `tsconfig.json`.
-- CI should run `npm test` (Vitest) and optionally `npx playwright test` for E2E.
+- CI should run `npm test` (Vitest). If Playwright is added later, include a separate E2E job.

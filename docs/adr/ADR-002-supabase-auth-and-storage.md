@@ -33,6 +33,6 @@ The MVP needs user authentication, a relational database for ideas/profiles, and
 ## Consequences
 
 - Auth tokens are managed by Supabase; middleware refreshes sessions via `@supabase/ssr`.
-- Role is stored in a `profiles` table and checked via server-side helpers + RLS.
+- Role is stored in the `user_profile` table and checked via server-side helpers + RLS.
 - File uploads go to a Supabase Storage bucket with per-user path policies.
 - Migration to another provider would require rewriting auth and storage layers.
