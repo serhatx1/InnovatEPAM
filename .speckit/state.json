@@ -1,0 +1,34 @@
+{
+  "workflowId": "2026-02-24-innovatepam",
+  "projectName": "InnovatEPAM",
+  "version": "1.0",
+  "createdAt": "2026-02-24T11:40:40.159Z",
+  "updatedAt": "2026-02-24T12:10:07.889Z",
+  "currentPhase": "constitute",
+  "phases": {
+    "constitute": {
+      "status": "in_progress",
+      "quality": null,
+      "startedAt": "2026-02-24T12:09:42.102Z",
+      "completedAt": null
+    },
+    "specify": {
+      "status": "pending",
+      "quality": null,
+      "startedAt": null,
+      "completedAt": null
+    },
+    "plan": {
+      "status": "pending",
+      "quality": null,
+      "startedAt": null,
+      "completedAt": null
+    },
+    "implement": {
+      "status": "pending",
+      "quality": null,
+      "startedAt": null,
+      "completedAt": null
+    }
+  }
+}
