@@ -62,6 +62,7 @@ export interface CreateIdeaInput {
   title: string;
   description: string;
   category: string;
+  category_fields?: Record<string, string | number>;
   attachment_url: string | null;
 }
 

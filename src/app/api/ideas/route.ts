@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { ideaSchema, validateFile } from "@/lib/validation/idea";
+import { validateCategoryFieldsForCategory } from "@/lib/validation/category-fields";
 import { uploadIdeaAttachment } from "@/lib/supabase/storage";
 import { listIdeas, createIdea } from "@/lib/queries";
 
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
   const category = formData.get("category") as string;
+  const categoryFieldsRaw = formData.get("category_fields") as string | null;
   const file = formData.get("file") as File | null;
 
   // Validate input
@@ -53,6 +55,42 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Validation failed", details: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  let parsedCategoryFieldsInput: unknown = {};
+  if (categoryFieldsRaw) {
+    try {
+      parsedCategoryFieldsInput = JSON.parse(categoryFieldsRaw);
+    } catch {
+      return NextResponse.json(
+        {
+          error: "Validation failed",
+          details: {
+            category_fields: ["Category fields must be a valid JSON object"],
+          },
+        },
+        { status: 400 }
+      );
+    }
+  }
+
+  const categoryFieldsResult = validateCategoryFieldsForCategory(
+    parsed.data.category,
+    parsedCategoryFieldsInput
+  );
+
+  if (!categoryFieldsResult.success) {
+    const details = Object.fromEntries(
+      Object.entries(categoryFieldsResult.errors).map(([key, value]) => [
+        key === "category" ? key : `category_fields.${key}`,
+        value,
+      ])
+    );
+
+    return NextResponse.json(
+      { error: "Validation failed", details },
       { status: 400 }
     );
   }
@@ -77,6 +115,7 @@ export async function POST(request: NextRequest) {
     title: parsed.data.title,
     description: parsed.data.description,
     category: parsed.data.category,
+    category_fields: categoryFieldsResult.data,
     attachment_url: attachmentUrl,
   });
 

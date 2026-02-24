@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { IDEA_CATEGORIES, MAX_FILE_SIZE, ALLOWED_FILE_TYPES } from "@/lib/constants";
+import { validateCategoryFieldsForCategory } from "@/lib/validation/category-fields";
 
 export const ideaSchema = z.object({
   title: z
@@ -10,9 +11,7 @@ export const ideaSchema = z.object({
     .string()
     .min(20, "Description must be between 20 and 1000 characters")
     .max(1000, "Description must be between 20 and 1000 characters"),
-  category: z.enum(IDEA_CATEGORIES, {
-    errorMap: () => ({ message: "Invalid category" }),
-  }),
+  category: z.enum(IDEA_CATEGORIES, { message: "Invalid category" }),
 });
 
 export type IdeaInput = z.infer<typeof ideaSchema>;
@@ -32,3 +31,5 @@ export function validateFile(file: File): string | null {
 
   return null;
 }
+
+export { validateCategoryFieldsForCategory };

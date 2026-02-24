@@ -7,9 +7,7 @@ import { VALID_TRANSITIONS } from "@/lib/constants";
  */
 export const statusUpdateSchema = z
   .object({
-    status: z.enum(["under_review", "accepted", "rejected"], {
-      errorMap: () => ({ message: "Invalid status" }),
-    }),
+    status: z.enum(["under_review", "accepted", "rejected"], { message: "Invalid status" }),
     evaluatorComment: z.string().optional(),
   })
   .refine(
