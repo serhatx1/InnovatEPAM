@@ -6,7 +6,7 @@
 
 ## Decision
 
-Use Next.js 15 with the App Router pattern as the sole application framework.
+Use Next.js 16.1 with the App Router pattern as the sole application framework.
 
 ## Context
 
@@ -16,7 +16,7 @@ The MVP requires server-side rendering, API routes, and a modern React frontend.
 
 | Option | Pros | Cons |
 |--------|------|------|
-| **Next.js App Router** | SSR + API routes in one project, Vercel deployment, React Server Components | Newer pattern, smaller community examples |
+| **Next.js 16.1 App Router** | SSR + API routes in one project, Vercel deployment, React Server Components | Newer pattern, smaller community examples |
 | Vite + Express | Flexible, fast dev server | Two deployable units, more wiring |
 | Remix | Good data loading model | Smaller ecosystem, less Supabase integration material |
 
