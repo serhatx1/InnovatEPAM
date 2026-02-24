@@ -22,9 +22,7 @@ export default async function IdeasListPage() {
   const role = await getUserRole(supabase, user.id);
   const isAdmin = role === "admin";
 
-  const { data: ideaList, error } = await listIdeas(supabase, {
-    userId: isAdmin ? undefined : user.id,
-  });
+  const { data: ideaList, error } = await listIdeas(supabase);
 
   if (error) {
     return (
@@ -38,7 +36,7 @@ export default async function IdeasListPage() {
   return (
     <main style={{ padding: 24, maxWidth: 800 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Ideas {isAdmin && "(Admin View)"}</h1>
+        <h1>Ideas</h1>
         <Link href="/ideas/new" style={{ padding: "8px 16px", background: "#0070f3", color: "#fff", textDecoration: "none", borderRadius: 4 }}>
           + New Idea
         </Link>

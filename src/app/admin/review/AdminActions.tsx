@@ -18,9 +18,9 @@ export default function AdminActions({ ideaId, currentStatus }: AdminActionsProp
   const [success, setSuccess] = useState<string | null>(null);
 
   async function handleStatusUpdate(newStatus: string) {
-    // Reject requires a comment
-    if (newStatus === "rejected" && !comment.trim()) {
-      setError("A comment is required when rejecting an idea.");
+    // Reject requires a comment with minimum 10 characters
+    if (newStatus === "rejected" && comment.trim().length < 10) {
+      setError("Rejection comment must be at least 10 characters.");
       return;
     }
 
@@ -63,7 +63,8 @@ export default function AdminActions({ ideaId, currentStatus }: AdminActionsProp
       {!isTerminal && (
         <>
           <label style={{ display: "block", marginBottom: 8 }}>
-            Comment {status !== "rejected" ? "(optional, required for reject)" : "(required)"}
+            Comment {status !== "rejected" ? "(optional, required for reject — min 10 chars)" : "(required — min 10 chars)"}
+            {" "}<small>({comment.length} chars)</small>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}

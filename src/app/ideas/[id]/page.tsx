@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAttachmentUrl } from "@/lib/supabase/storage";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getUserRole, getIdeaById } from "@/lib/queries";
+import { getIdeaById } from "@/lib/queries";
 
 const STATUS_BADGE: Record<string, string> = {
   submitted: "🟡 Submitted",
@@ -32,19 +32,6 @@ export default async function IdeaDetailPage({
       <main style={{ padding: 24 }}>
         <h1>Idea Not Found</h1>
         <p>The idea you are looking for does not exist.</p>
-        <Link href="/ideas">← Back to Ideas</Link>
-      </main>
-    );
-  }
-
-  // Check access: owner or admin
-  const role = await getUserRole(supabase, user.id);
-
-  if (typedIdea.user_id !== user.id && role !== "admin") {
-    return (
-      <main style={{ padding: 24 }}>
-        <h1>Access Denied</h1>
-        <p>You do not have permission to view this idea.</p>
         <Link href="/ideas">← Back to Ideas</Link>
       </main>
     );
