@@ -12,6 +12,12 @@ This feature enhances the existing idea submission experience by showing additio
 
 The current submission form collects the same information for all idea categories, which leads to incomplete or low-quality submissions for category-specific reviews. Reviewers often lack critical details needed to evaluate ideas quickly, and submitters are not guided on what information matters most for each category.
 
+## Clarifications
+
+### Session 2026-02-24
+
+- Q: How should category-specific field values be stored? → A: Store category-specific values in one validated JSON object field on the idea record.
+
 ## User Scenarios & Testing
 
 ### Primary Scenarios
@@ -79,7 +85,7 @@ The current submission form collects the same information for all idea categorie
 
 | ID    | Requirement | Acceptance Criteria |
 | ----- | ----------- | ------------------- |
-| FR-08 | The system shall store category-specific values together with the idea submission | Reviewers can view category-specific details for submitted ideas |
+| FR-08 | The system shall store category-specific values together with the idea submission in one validated JSON object field tied to the selected category | Reviewers can view category-specific details for submitted ideas, and stored values contain only active-category keys |
 | FR-09 | The system shall keep existing base submission rules unchanged unless explicitly category-dependent | Existing base validations and required base fields continue to work as before |
 
 ## Success Criteria
@@ -99,7 +105,7 @@ The current submission form collects the same information for all idea categorie
 - **idea_id**: Unique identifier for the idea
 - **category**: Selected category value
 - **base_fields**: Shared submission fields required for all categories
-- **category_fields**: Additional values required or optional for the selected category
+- **category_fields**: JSON object containing additional values for the selected category only
 - **created_at**: Submission timestamp
 
 ### Category Field Definition
