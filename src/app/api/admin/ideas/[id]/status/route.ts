@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getUserRole, ideaExists, updateIdeaStatus } from "@/lib/queries";
-
-const VALID_STATUSES = ["under_review", "accepted", "rejected"];
+import { getUserRole, getIdeaById, updateIdeaStatus } from "@/lib/queries";
+import { statusUpdateSchema, isValidTransition } from "@/lib/validation/status";
 
 /**
  * PATCH /api/admin/ideas/[id]/status — Update idea status (admin only).
  * Body: { status: string, evaluatorComment?: string }
  *
  * Rules:
- *  - Only admin role can call this endpoint.
- *  - Status must be one of: under_review, accepted, rejected.
- *  - Rejecting requires a non-empty evaluatorComment.
+ *  - Only admin role can call this endpoint (FR-08).
+ *  - Status transitions must be valid (FR-22).
+ *  - Rejecting requires evaluatorComment ≥ 10 chars (FR-26).
  */
 export async function PATCH(
   request: NextRequest,
@@ -36,32 +35,30 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden: admin role required" }, { status: 403 });
   }
 
-  // Parse body
+  // Parse and validate body with Zod schema
   const body = await request.json();
-  const { status, evaluatorComment } = body as {
-    status?: string;
-    evaluatorComment?: string;
-  };
+  const parsed = statusUpdateSchema.safeParse(body);
 
-  if (!status || !VALID_STATUSES.includes(status)) {
-    return NextResponse.json(
-      { error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}` },
-      { status: 400 }
-    );
+  if (!parsed.success) {
+    const firstError = parsed.error.errors[0]?.message ?? "Validation failed";
+    return NextResponse.json({ error: firstError }, { status: 400 });
   }
 
-  // Reject-comment rule: rejecting requires a comment
-  if (status === "rejected" && (!evaluatorComment || !evaluatorComment.trim())) {
-    return NextResponse.json(
-      { error: "A comment is required when rejecting an idea" },
-      { status: 400 }
-    );
-  }
+  const { status, evaluatorComment } = parsed.data;
 
-  // Verify idea exists
-  const exists = await ideaExists(supabase, id);
-  if (!exists) {
+  // Fetch current idea to validate transition
+  const { data: idea, error: fetchError } = await getIdeaById(supabase, id);
+
+  if (fetchError || !idea) {
     return NextResponse.json({ error: "Idea not found" }, { status: 404 });
+  }
+
+  // Validate status transition (FR-22)
+  if (!isValidTransition(idea.status, status)) {
+    return NextResponse.json(
+      { error: `Invalid transition from '${idea.status}' to '${status}'` },
+      { status: 400 }
+    );
   }
 
   // Update idea
