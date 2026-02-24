@@ -1,26 +1,26 @@
 <!--
 Sync Impact Report
 ===================
-Version change: N/A → 1.0.0 (initial ratification)
-Added sections:
-  - Purpose
-  - Guiding Principles (5 principles)
-  - Priorities
-  - Constraints
-  - Testing Principles
-  - Development Methodology
-  - Governance
+Version change: 1.0.0 → 1.0.1
+Updated sections:
+  - Guiding Principles (Test-First wording)
+  - Constraints (runtime + testing stack)
+  - Testing Principles (current test scope)
+Reason:
+  - Align constitution with actual repository setup
+    (Vitest-only test stack; no Playwright/e2e directory yet)
 Templates requiring updates:
   - .github/agents/*.agent.md ✅ no changes needed
   - .github/prompts/*.prompt.md ✅ no changes needed
-Follow-up TODOs: none
+Follow-up TODOs:
+  - Add `tests/e2e/` and Playwright config before claiming E2E requirement
 -->
 
 # InnovatEPAM Portal Constitution
 
 **Created**: 2026-02-24
 **Last Amended**: 2026-02-24
-**Version**: 1.0.0
+**Version**: 1.0.1
 
 ## Purpose
 
@@ -33,17 +33,16 @@ that govern all development decisions.
 ## Guiding Principles
 
 1. **Simplicity First**: Keep architecture simple and maintainable.
-   Single Next.js 15 App Router application — no microservices, no
+   Single Next.js 16.1 App Router application — no microservices, no
    unnecessary abstractions. YAGNI applies: every added complexity
    MUST be justified by a concrete requirement. Prefer convention
    over configuration.
 
 2. **Test-First (TDD)**: All production code MUST be preceded by a
-   failing test (RED → GREEN → REFACTOR). Unit tests cover isolated
-   logic. Integration tests cover API route handlers. E2E smoke
-   tests cover critical user flows (register → login → submit →
-   review). Coverage target: 80%+ for `src/lib/`. This principle
-   is NON-NEGOTIABLE.
+  failing test (RED → GREEN → REFACTOR). Unit tests cover isolated
+  logic. Integration tests cover API route handlers. Coverage target:
+  80%+ for `src/lib/`. E2E smoke tests are optional until Playwright
+  is added to the repository. This principle is NON-NEGOTIABLE.
 
 3. **Secure by Default**: No secrets committed to the repository;
    environment variables only. All user input MUST be validated on
@@ -74,12 +73,11 @@ that govern all development decisions.
 
 ## Constraints
 
-- **Runtime**: Node.js 20+, Next.js 15 (App Router), React 19
+- **Runtime**: Node.js 20+, Next.js 16.1 (App Router), React 19
 - **Backend**: Supabase (Postgres with RLS, Auth, Storage)
 - **Language**: TypeScript 5 (strict mode)
 - **Validation**: Zod for all input boundaries
-- **Testing**: Vitest + React Testing Library (unit/integration),
-  Playwright (E2E smoke tests only)
+- **Testing**: Vitest + React Testing Library (unit/integration)
 - **Deployment**: Vercel
 - **Auth**: Supabase Auth (email/password); middleware refreshes
   tokens on every request
@@ -90,12 +88,10 @@ that govern all development decisions.
   not implementation details.
 - **Integration tests**: Test API route handlers with mocked
   Supabase client.
-- **E2E smoke tests**: Playwright for critical happy paths only
-  (auth flow, idea submission, admin review).
+- **E2E smoke tests**: Optional until Playwright is configured.
 - **Coverage target**: 80%+ for core logic (`src/lib/`),
   best-effort for UI components.
-- **Test location**: `tests/unit/`, `tests/integration/`,
-  `tests/e2e/`.
+- **Test location**: `tests/unit/`, `tests/integration/`.
 - **Naming**: `*.test.ts` or `*.test.tsx`.
 - **Discipline**: Tests MUST pass before any merge or deploy.
 
