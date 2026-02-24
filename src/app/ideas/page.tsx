@@ -2,12 +2,23 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUserRole, listIdeas } from "@/lib/queries";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
-const STATUS_BADGE: Record<string, string> = {
-  submitted: "🟡 Submitted",
-  under_review: "🔵 Under Review",
-  accepted: "✅ Accepted",
-  rejected: "❌ Rejected",
+const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  submitted: "outline",
+  under_review: "secondary",
+  accepted: "default",
+  rejected: "destructive",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  submitted: "Submitted",
+  under_review: "Under Review",
+  accepted: "Accepted",
+  rejected: "Rejected",
 };
 
 export default async function IdeasListPage() {
@@ -27,60 +38,65 @@ export default async function IdeasListPage() {
 
   if (error) {
     return (
-      <main style={{ padding: 24 }}>
-        <h1>Ideas</h1>
-        <p style={{ color: "red" }}>Error loading ideas: {error}</p>
+      <main className="mx-auto max-w-3xl p-6">
+        <h1 className="text-2xl font-bold">Ideas</h1>
+        <p className="text-destructive mt-2">Error loading ideas: {error}</p>
       </main>
     );
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 800 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Ideas</h1>
-        <Link href="/ideas/new" style={{ padding: "8px 16px", background: "#0070f3", color: "#fff", textDecoration: "none", borderRadius: 4 }}>
-          + New Idea
-        </Link>
+    <main className="mx-auto max-w-3xl p-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Ideas</h1>
+        <Button asChild>
+          <Link href="/ideas/new">+ New Idea</Link>
+        </Button>
       </div>
 
       {isAdmin && (
-        <p style={{ marginBottom: 16 }}>
-          <Link href="/admin/review">Go to Admin Review Dashboard →</Link>
+        <p className="mt-2">
+          <Button asChild variant="link" className="px-0">
+            <Link href="/admin/review">Go to Admin Review Dashboard →</Link>
+          </Button>
         </p>
       )}
 
+      <Separator className="my-4" />
+
       {ideaList.length === 0 ? (
-        <p>No ideas yet. Be the first to submit one!</p>
+        <p className="text-muted-foreground">No ideas yet. Be the first to submit one!</p>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ textAlign: "left", borderBottom: "2px solid #ccc" }}>
-              <th style={{ padding: 8 }}>Title</th>
-              <th style={{ padding: 8 }}>Category</th>
-              <th style={{ padding: 8 }}>Status</th>
-              <th style={{ padding: 8 }}>Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ideaList.map((idea) => (
-              <tr key={idea.id} style={{ borderBottom: "1px solid #eee" }}>
-                <td style={{ padding: 8 }}>
-                  <Link href={`/ideas/${idea.id}`}>{idea.title}</Link>
-                </td>
-                <td style={{ padding: 8 }}>{idea.category}</td>
-                <td style={{ padding: 8 }}>{STATUS_BADGE[idea.status] ?? idea.status}</td>
-                <td style={{ padding: 8 }}>
-                  {new Date(idea.created_at).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="grid gap-3">
+          {ideaList.map((idea) => (
+            <Link key={idea.id} href={`/ideas/${idea.id}`} className="block">
+              <Card className="hover:bg-muted/50 transition-colors">
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base">{idea.title}</CardTitle>
+                    <Badge variant={STATUS_VARIANT[idea.status] ?? "outline"}>
+                      {STATUS_LABEL[idea.status] ?? idea.status}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span>{idea.category}</span>
+                    <span>·</span>
+                    <span>{new Date(idea.created_at).toLocaleDateString()}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       )}
 
-      <p style={{ marginTop: 24 }}>
-        <Link href="/">← Home</Link>
-      </p>
+      <div className="mt-6">
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/">← Home</Link>
+        </Button>
+      </div>
     </main>
   );
 }

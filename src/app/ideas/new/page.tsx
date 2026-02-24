@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   IDEA_CATEGORIES,
   MAX_FILE_SIZE,
@@ -10,13 +11,21 @@ import {
   type IdeaCategory,
 } from "@/lib/constants";
 import { validateCategoryFieldsForCategory } from "@/lib/validation/category-fields";
+import { toast } from "sonner";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 const ACCEPT_EXTENSIONS = ".pdf,.png,.jpg,.jpeg,.docx";
 
 export default function NewIdeaPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<IdeaCategory | "">("");
   const [categoryFieldValues, setCategoryFieldValues] = useState<Record<string, string>>({});
   const [categoryFieldErrors, setCategoryFieldErrors] = useState<Record<string, string[]>>({});
@@ -50,7 +59,6 @@ export default function NewIdeaPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
     setCategoryFieldErrors({});
     setLoading(true);
 
@@ -70,12 +78,12 @@ export default function NewIdeaPage() {
     const file = formData.get("file") as File | null;
     if (file && file.size > 0) {
       if (file.size > MAX_FILE_SIZE) {
-        setError("File must not exceed 5 MB");
+        toast.error("File must not exceed 5 MB");
         setLoading(false);
         return;
       }
       if (!ALLOWED_FILE_TYPES.includes(file.type as (typeof ALLOWED_FILE_TYPES)[number])) {
-        setError("Accepted formats: PDF, PNG, JPG, DOCX");
+        toast.error("Accepted formats: PDF, PNG, JPG, DOCX");
         setLoading(false);
         return;
       }
@@ -92,128 +100,170 @@ export default function NewIdeaPage() {
         throw new Error(body.error || "Failed to submit idea");
       }
 
+      toast.success("Idea submitted successfully!");
       router.push("/ideas");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 600 }}>
-      <h1>Submit a New Idea</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
-        <label>
-          Title * <small>(5–100 characters)</small>
-          <input
-            name="title"
-            required
-            minLength={5}
-            maxLength={100}
-            style={{ width: "100%", padding: 8 }}
-            placeholder="Short title for your idea"
-          />
-        </label>
+    <main className="mx-auto max-w-2xl p-6">
+      <Button asChild variant="ghost" size="sm" className="mb-4">
+        <Link href="/ideas">← Back to Ideas</Link>
+      </Button>
 
-        <label>
-          Description * <small>(20–1000 characters)</small>
-          <textarea
-            name="description"
-            required
-            minLength={20}
-            maxLength={1000}
-            rows={5}
-            style={{ width: "100%", padding: 8 }}
-            placeholder="Describe your innovation idea in detail"
-          />
-        </label>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Submit a New Idea</CardTitle>
+          <CardDescription>Share your innovation proposal with the team</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="grid gap-5">
+            {/* Title */}
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="title">Title *</Label>
+                <span className="text-xs text-muted-foreground">{title.length}/100</span>
+              </div>
+              <Input
+                id="title"
+                name="title"
+                required
+                minLength={5}
+                maxLength={100}
+                placeholder="Short title for your idea"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">5–100 characters</p>
+            </div>
 
-        <label>
-          Category *
-          <select
-            name="category"
-            required
-            value={selectedCategory}
-            onChange={(event) => handleCategoryChange(event.target.value)}
-            style={{ width: "100%", padding: 8 }}
-          >
-            <option value="">Select a category</option>
-            {IDEA_CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </label>
+            {/* Description */}
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description">Description *</Label>
+                <span className="text-xs text-muted-foreground">{description.length}/1000</span>
+              </div>
+              <Textarea
+                id="description"
+                name="description"
+                required
+                minLength={20}
+                maxLength={1000}
+                rows={5}
+                placeholder="Describe your innovation idea in detail"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">20–1000 characters</p>
+            </div>
 
-        {activeCategoryFields.length > 0 && (
-          <section aria-label="Category-specific fields" style={{ display: "grid", gap: 12 }}>
-            <h2 style={{ margin: 0, fontSize: 18 }}>Category Details</h2>
-            {activeCategoryFields.map((field) => {
-              const errorMessages = categoryFieldErrors[field.field_key] ?? [];
-              const commonProps = {
-                id: `category-field-${field.field_key}`,
-                value: categoryFieldValues[field.field_key] ?? "",
-                onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-                  handleCategoryFieldChange(field.field_key, event.target.value),
-                style: { width: "100%", padding: 8 },
-              };
+            {/* Category */}
+            <div className="grid gap-2">
+              <Label htmlFor="category">Category *</Label>
+              <select
+                id="category"
+                name="category"
+                required
+                value={selectedCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+              >
+                <option value="">Select a category</option>
+                {IDEA_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-              return (
-                <label key={field.field_key}>
-                  {field.field_label}
-                  {field.is_required ? " *" : " (optional)"}
+            {/* Dynamic category-specific fields */}
+            {activeCategoryFields.length > 0 && (
+              <>
+                <Separator />
+                <section aria-label="Category-specific fields" className="grid gap-4">
+                  <h3 className="text-sm font-medium">Category Details</h3>
+                  {activeCategoryFields.map((field) => {
+                    const errorMessages = categoryFieldErrors[field.field_key] ?? [];
+                    const fieldValue = categoryFieldValues[field.field_key] ?? "";
 
-                  {field.field_type === "textarea" ? (
-                    <textarea {...commonProps} rows={4} />
-                  ) : field.field_type === "select" ? (
-                    <select {...commonProps}>
-                      <option value="">Select</option>
-                      {(field.options ?? []).map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      {...commonProps}
-                      type={field.field_type === "number" ? "number" : "text"}
-                      min={field.field_type === "number" ? field.min : undefined}
-                      max={field.field_type === "number" ? field.max : undefined}
-                    />
-                  )}
+                    return (
+                      <div key={field.field_key} className="grid gap-2">
+                        <Label htmlFor={`category-field-${field.field_key}`}>
+                          {field.field_label}
+                          {field.is_required ? " *" : " (optional)"}
+                        </Label>
 
-                  {errorMessages.map((message) => (
-                    <p key={message} style={{ color: "red", margin: "4px 0 0" }}>
-                      {message}
-                    </p>
-                  ))}
-                </label>
-              );
-            })}
-          </section>
-        )}
+                        {field.field_type === "textarea" ? (
+                          <Textarea
+                            id={`category-field-${field.field_key}`}
+                            value={fieldValue}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                              handleCategoryFieldChange(field.field_key, e.target.value)
+                            }
+                            rows={4}
+                          />
+                        ) : field.field_type === "select" ? (
+                          <select
+                            id={`category-field-${field.field_key}`}
+                            value={fieldValue}
+                            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                              handleCategoryFieldChange(field.field_key, e.target.value)
+                            }
+                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                          >
+                            <option value="">Select</option>
+                            {(field.options ?? []).map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <Input
+                            id={`category-field-${field.field_key}`}
+                            type={field.field_type === "number" ? "number" : "text"}
+                            min={field.field_type === "number" ? field.min : undefined}
+                            max={field.field_type === "number" ? field.max : undefined}
+                            value={fieldValue}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              handleCategoryFieldChange(field.field_key, e.target.value)
+                            }
+                          />
+                        )}
 
-        <label>
-          Attachment (optional, max 5 MB — PDF, PNG, JPG, DOCX)
-          <input name="file" type="file" accept={ACCEPT_EXTENSIONS} style={{ width: "100%" }} />
-        </label>
+                        {errorMessages.map((message) => (
+                          <p key={message} className="text-sm text-destructive">
+                            {message}
+                          </p>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </section>
+              </>
+            )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ padding: 12, cursor: "pointer" }}
-        >
-          {loading ? "Submitting..." : "Submit Idea"}
-        </button>
-      </form>
-      <p style={{ marginTop: 16 }}>
-        <a href="/ideas">← Back to Ideas</a>
-      </p>
+            <Separator />
+
+            {/* File attachment */}
+            <div className="grid gap-2">
+              <Label htmlFor="file">Attachment (optional)</Label>
+              <Input id="file" name="file" type="file" accept={ACCEPT_EXTENSIONS} />
+              <p className="text-xs text-muted-foreground">Max 5 MB — PDF, PNG, JPG, DOCX</p>
+            </div>
+
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? "Submitting..." : "Submit Idea"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </main>
   );
 }

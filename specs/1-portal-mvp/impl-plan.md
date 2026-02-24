@@ -10,7 +10,9 @@
 | Area         | Technology                                  | Version  |
 | ------------ | ------------------------------------------- | -------- |
 | Runtime      | Next.js (App Router)                        | 16.1     |
-| UI           | React                                       | 19       |
+| UI           | React + shadcn/ui + Tailwind CSS            | 19 / 0.x / 4 |
+| Styling      | Tailwind CSS utility-first                  | 4        |
+| Components   | shadcn/ui (Radix primitives, owned source)  | latest   |
 | Language     | TypeScript (strict mode)                    | 5.9      |
 | Backend      | Supabase (Postgres + RLS, Auth, Storage)    | Latest   |
 | Validation   | Zod                                         | 4.3      |
@@ -60,6 +62,25 @@ All unknowns resolved — see [research.md](research.md) for full details.
 ---
 
 ## Implementation Tasks
+
+### Phase 0: UI Foundation — Tailwind CSS + shadcn/ui Setup
+
+#### T0: Install Tailwind CSS and shadcn/ui, configure design system
+
+**Files**: `package.json`, `globals.css`, `tailwind.config.ts`, `components.json`, `src/components/ui/`, `src/lib/utils.ts`, `src/app/layout.tsx`
+**ADR**: [ADR-004](../../docs/adr/ADR-004-shadcn-ui-design-system.md)
+**Spec refs**: NFR-01 through NFR-06
+
+1. **Install Tailwind CSS v4** and configure with Next.js App Router.
+2. **Initialize shadcn/ui** (`npx shadcn@latest init`) — select "New York" style, zinc base color, CSS variables enabled.
+3. **Add required components** via CLI:
+   - `button`, `input`, `textarea`, `select`, `label`, `card`, `badge`, `dialog`, `alert-dialog`, `toast` (sonner), `form`, `separator`, `dropdown-menu`
+4. **Update `globals.css`** with Tailwind directives and shadcn CSS variables (minimalist neutral palette).
+5. **Create `src/lib/utils.ts`** with `cn()` helper (clsx + tailwind-merge).
+6. **Update `src/app/layout.tsx`** to include Inter/Geist font and Toaster provider.
+7. **Verify**: `npm run dev` renders cleanly with new styling base.
+
+---
 
 ### Phase 1: Foundation — Constants & Validation (TDD)
 
@@ -185,40 +206,57 @@ All unknowns resolved — see [research.md](research.md) for full details.
 
 ---
 
-### Phase 4: UI Alignment
+### Phase 4: UI Overhaul — shadcn/ui Component Migration
 
-#### T6: Update categories in new idea form
+#### T6: Refactor auth pages (login, register) with shadcn components
 
-**Files**: `src/app/ideas/new/page.tsx`
-**Spec refs**: FR-12, R5
+**Files**: `src/app/auth/login/page.tsx`, `src/app/auth/register/page.tsx`
+**Spec refs**: NFR-01, NFR-02, NFR-03, FR-01, FR-02
 
-1. Import `IDEA_CATEGORIES` from `src/lib/constants.ts`
-2. Replace hardcoded `CATEGORIES` array with imported constant
-3. **Verify**: Form dropdown shows spec-defined categories
-
----
-
-#### T7: Add client-side file validation feedback
-
-**Files**: `src/app/ideas/new/page.tsx`
-**Spec refs**: FR-14, FR-15, EC3, EC4
-
-1. Import `MAX_FILE_SIZE` and `ALLOWED_FILE_TYPES` from constants
-2. Add `accept` attribute to file input: `accept=".pdf,.png,.jpg,.jpeg,.docx"`
-3. Add client-side validation on form submit (before fetch): check file size and type, show inline error
-4. **Verify**: Invalid files show error without network request
+1. Replace raw HTML form elements with shadcn `Card`, `Input`, `Button`, `Label`, `Form` components.
+2. Add `Toast` notifications for login/register errors and success.
+3. Clean minimalist layout: centered card, generous padding, neutral colors.
+4. **Verify**: Auth pages render with shadcn components; login/register flows work end-to-end.
 
 ---
 
-#### T8: Add client-side validation feedback for title/description
+#### T7: Refactor idea submission form with shadcn components
 
 **Files**: `src/app/ideas/new/page.tsx`
-**Spec refs**: FR-10, FR-11, EC2
+**Spec refs**: NFR-01, NFR-03, FR-09 through FR-16, EC2, EC3, EC4
 
-1. Add `minLength={5}` `maxLength={100}` to title input
-2. Add `minLength={20}` `maxLength={1000}` to description textarea
-3. Optionally add character count display
-4. **Verify**: Form shows validation hints for constraint violations
+1. Replace raw inputs/selects with shadcn `Input`, `Textarea`, `Select`, `Button`, `Label`.
+2. Import `IDEA_CATEGORIES` from constants for category `Select`.
+3. Add client-side file validation with `Toast` feedback for size/type errors.
+4. Add character count display for title and description.
+5. Use `Card` wrapper for the form with clean spacing.
+6. **Verify**: Form renders with shadcn components; validation feedback uses toasts + inline errors.
+
+---
+
+#### T8: Refactor idea listing and detail pages with shadcn components
+
+**Files**: `src/app/ideas/page.tsx`, `src/app/ideas/[id]/page.tsx`
+**Spec refs**: NFR-01, NFR-04, NFR-05, FR-17 through FR-20, FR-23
+
+1. Render each idea as a shadcn `Card` with `Badge` for status (color-coded per NFR-05).
+2. Use `Separator` between sections on detail page.
+3. Attachment download as a `Button` variant link.
+4. Admin comments displayed in a distinct `Card` section.
+5. **Verify**: Listing shows card grid/list; detail page uses proper components.
+
+---
+
+#### T8b: Refactor admin review page with shadcn components
+
+**Files**: `src/app/admin/review/page.tsx`, `src/app/admin/review/AdminActions.tsx`
+**Spec refs**: NFR-01, NFR-03, FR-24 through FR-28
+
+1. Replace raw HTML with shadcn `Card`, `Button`, `Textarea`, `Badge`.
+2. Use `AlertDialog` for reject confirmation (with mandatory comment textarea).
+3. Use `Toast` for accept/reject success/error feedback.
+4. Enforce 10-char minimum on rejection comment via form validation.
+5. **Verify**: Admin actions use modals/dialogs; feedback appears as toasts.
 
 ---
 
@@ -245,13 +283,16 @@ All unknowns resolved — see [research.md](research.md) for full details.
 ## Task Dependency Graph
 
 ```
+T0 (Tailwind + shadcn setup) — MUST BE FIRST, blocks all UI work
+
 T1 (constants + validation schemas)
 ├── T2 (status transitions) — depends on VALID_TRANSITIONS from T1
 ├── T3 (POST /api/ideas file validation) — depends on fileSchema from T1
 ├── T4 (PATCH admin status validation) — depends on T1 + T2
-├── T6 (UI categories) — depends on IDEA_CATEGORIES from T1
-├── T7 (UI file validation) — depends on constants from T1
-└── T8 (UI input validation) — depends on constraints from T1
+├── T6 (auth pages UI) — depends on T0 + shadcn components
+├── T7 (idea form UI) — depends on T0 + T1 constants
+├── T8 (listing/detail UI) — depends on T0 + shadcn components
+└── T8b (admin review UI) — depends on T0 + shadcn components
 
 T5 (RLS — already consolidated in 001_create_schema.sql) — independent, can run in parallel with T1–T4
 
@@ -260,11 +301,12 @@ T9 (test coverage) — runs last, after all code changes
 
 ## Execution Order
 
-1. **T1** → **T2** (foundation, must be first)
-2. **T3** → **T4** (API hardening, depends on T1+T2)
-3. **T5** (RLS fix, independent — can overlap with API work)
-4. **T6** → **T7** → **T8** (UI alignment, depends on T1)
-5. **T9** (coverage sweep, last)
+1. **T0** (Tailwind + shadcn install — must be first)
+2. **T1** → **T2** (foundation constants + validation)
+3. **T3** → **T4** (API hardening, depends on T1+T2)
+4. **T5** (RLS fix, independent — can overlap with API work)
+5. **T6** → **T7** → **T8** → **T8b** (UI overhaul with shadcn, depends on T0+T1)
+6. **T9** (coverage sweep, last)
 
 ---
 

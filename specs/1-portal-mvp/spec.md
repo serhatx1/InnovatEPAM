@@ -159,6 +159,17 @@ EPAM employees currently lack a centralized, structured channel for submitting i
 | FR-27 | Admin evaluation actions shall only be available for ideas in "submitted" or "under review" status              | Accept/reject controls are hidden or disabled for ideas already in "accepted" or "rejected" status |
 | FR-28 | Admin comments shall be visible on the idea detail view to all authenticated users                              | Comments appear on the detail page after evaluation                                               |
 
+## Non-Functional Requirements: UI/UX
+
+| ID     | Requirement | Acceptance Criteria |
+| ------ | ----------- | ------------------- |
+| NFR-01 | The UI shall use shadcn/ui components exclusively for all interactive elements (buttons, inputs, selects, dialogs, toasts) | No raw HTML `<button>`, `<input>`, or `<select>` elements in page components |
+| NFR-02 | The visual design shall follow a minimalist, modern aesthetic: neutral palette (zinc/slate), generous whitespace, subtle borders | Visual review confirms clean, professional appearance with no bright/competing colors |
+| NFR-03 | All user feedback (success, error, confirmation) shall use dedicated UI components: `Toast` for transient messages, `AlertDialog` for destructive confirmations, inline field errors for validation | No `window.alert()` or raw error text; all feedback rendered via shadcn components |
+| NFR-04 | Every reusable UI element shall be a standalone component under `src/components/ui/` | Components are importable and composable; no page-level inline styling for common elements |
+| NFR-05 | Status badges shall use color-coded `Badge` components: neutral for submitted, blue for under_review, green for accepted, red for rejected | Each status renders with its designated color variant |
+| NFR-06 | The layout shall be responsive and mobile-first, functioning on viewports from 375px to 1440px+ | Pages render without horizontal scroll on mobile viewports |
+
 ## Success Criteria
 
 | ID   | Criterion                                                                                                      | Measurement                                                |

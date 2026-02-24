@@ -3,12 +3,23 @@ import { getAttachmentUrl } from "@/lib/supabase/storage";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getIdeaById, getUserRole } from "@/lib/queries";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
-const STATUS_BADGE: Record<string, string> = {
-  submitted: "🟡 Submitted",
-  under_review: "🔵 Under Review",
-  accepted: "✅ Accepted",
-  rejected: "❌ Rejected",
+const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  submitted: "outline",
+  under_review: "secondary",
+  accepted: "default",
+  rejected: "destructive",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  submitted: "Submitted",
+  under_review: "Under Review",
+  accepted: "Accepted",
+  rejected: "Rejected",
 };
 
 export default async function IdeaDetailPage({
@@ -40,10 +51,12 @@ export default async function IdeaDetailPage({
 
   if (error || !typedIdea) {
     return (
-      <main style={{ padding: 24 }}>
-        <h1>Idea Not Found</h1>
-        <p>The idea you are looking for does not exist.</p>
-        <Link href="/ideas">← Back to Ideas</Link>
+      <main className="mx-auto max-w-2xl p-6">
+        <h1 className="text-2xl font-bold">Idea Not Found</h1>
+        <p className="text-muted-foreground mt-2">The idea you are looking for does not exist.</p>
+        <Button asChild variant="ghost" size="sm" className="mt-4">
+          <Link href="/ideas">← Back to Ideas</Link>
+        </Button>
       </main>
     );
   }
@@ -55,69 +68,88 @@ export default async function IdeaDetailPage({
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 700 }}>
-      <Link href="/ideas">← Back to Ideas</Link>
+    <main className="mx-auto max-w-2xl p-6">
+      <Button asChild variant="ghost" size="sm" className="mb-4">
+        <Link href="/ideas">← Back to Ideas</Link>
+      </Button>
 
-      <h1 style={{ marginTop: 16 }}>{typedIdea.title}</h1>
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-3">
+            <CardTitle className="text-2xl">{typedIdea.title}</CardTitle>
+            <Badge variant={STATUS_VARIANT[typedIdea.status] ?? "outline"}>
+              {STATUS_LABEL[typedIdea.status] ?? typedIdea.status}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          {/* Meta info */}
+          <div className="grid grid-cols-2 gap-y-2 text-sm">
+            <span className="font-medium text-muted-foreground">Category</span>
+            <span>{typedIdea.category}</span>
+            <span className="font-medium text-muted-foreground">Submitter</span>
+            <span>{submitterEmail ?? "Unknown"}</span>
+            <span className="font-medium text-muted-foreground">Submitted</span>
+            <span>{new Date(typedIdea.created_at).toLocaleString()}</span>
+            <span className="font-medium text-muted-foreground">Last Updated</span>
+            <span>{new Date(typedIdea.updated_at).toLocaleString()}</span>
+          </div>
 
-      <table style={{ marginBottom: 16 }}>
-        <tbody>
-          <tr>
-            <td style={{ padding: "4px 16px 4px 0", fontWeight: "bold" }}>Category</td>
-            <td>{typedIdea.category}</td>
-          </tr>
-          <tr>
-            <td style={{ padding: "4px 16px 4px 0", fontWeight: "bold" }}>Status</td>
-            <td>{STATUS_BADGE[typedIdea.status] ?? typedIdea.status}</td>
-          </tr>
-          <tr>
-            <td style={{ padding: "4px 16px 4px 0", fontWeight: "bold" }}>Submitter</td>
-            <td>{submitterEmail ?? "Unknown"}</td>
-          </tr>
-          <tr>
-            <td style={{ padding: "4px 16px 4px 0", fontWeight: "bold" }}>Submitted</td>
-            <td>{new Date(typedIdea.created_at).toLocaleString()}</td>
-          </tr>
-          <tr>
-            <td style={{ padding: "4px 16px 4px 0", fontWeight: "bold" }}>Last Updated</td>
-            <td>{new Date(typedIdea.updated_at).toLocaleString()}</td>
-          </tr>
-        </tbody>
-      </table>
+          <Separator />
 
-      <h2>Description</h2>
-      <p style={{ whiteSpace: "pre-wrap" }}>{typedIdea.description}</p>
+          {/* Description */}
+          <div>
+            <h2 className="text-sm font-medium text-muted-foreground mb-1">Description</h2>
+            <p className="whitespace-pre-wrap">{typedIdea.description}</p>
+          </div>
 
-      {typedIdea.category_fields && Object.keys(typedIdea.category_fields).length > 0 && (
-        <>
-          <h2>Category Details</h2>
-          <ul>
-            {Object.entries(typedIdea.category_fields).map(([key, value]) => (
-              <li key={key}>
-                <strong>{key.replaceAll("_", " ")}:</strong> {String(value)}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+          {/* Category Fields */}
+          {typedIdea.category_fields && Object.keys(typedIdea.category_fields).length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h2 className="text-sm font-medium text-muted-foreground mb-2">Category Details</h2>
+                <ul className="grid gap-1 text-sm">
+                  {Object.entries(typedIdea.category_fields).map(([key, value]) => (
+                    <li key={key}>
+                      <span className="font-medium">{key.replaceAll("_", " ")}:</span>{" "}
+                      {String(value)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
 
-      {attachmentDownloadUrl && (
-        <>
-          <h2>Attachment</h2>
-          <a href={attachmentDownloadUrl} target="_blank" rel="noopener noreferrer">
-            Download Attachment
-          </a>
-        </>
-      )}
+          {/* Attachment */}
+          {attachmentDownloadUrl && (
+            <>
+              <Separator />
+              <div>
+                <h2 className="text-sm font-medium text-muted-foreground mb-2">Attachment</h2>
+                <Button asChild variant="outline" size="sm">
+                  <a href={attachmentDownloadUrl} target="_blank" rel="noopener noreferrer">
+                    Download Attachment
+                  </a>
+                </Button>
+              </div>
+            </>
+          )}
 
-      {typedIdea.evaluator_comment && (
-        <>
-          <h2>Evaluator Comment</h2>
-          <p style={{ whiteSpace: "pre-wrap", background: "#f5f5f5", padding: 12, borderRadius: 4 }}>
-            {typedIdea.evaluator_comment}
-          </p>
-        </>
-      )}
+          {/* Evaluator Comment */}
+          {typedIdea.evaluator_comment && (
+            <>
+              <Separator />
+              <Card className="bg-muted/50">
+                <CardContent className="pt-4">
+                  <h2 className="text-sm font-medium text-muted-foreground mb-1">Evaluator Comment</h2>
+                  <p className="whitespace-pre-wrap text-sm">{typedIdea.evaluator_comment}</p>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </main>
   );
 }

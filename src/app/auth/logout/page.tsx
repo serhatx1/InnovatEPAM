@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function LogoutPage() {
   const router = useRouter();
@@ -13,16 +16,24 @@ export default function LogoutPage() {
     const supabase = createClient();
     await supabase.auth.signOut();
     setLoading(false);
+    toast.success("Logged out");
     router.push("/auth/login");
     router.refresh();
   }
 
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Logout</h1>
-      <button onClick={handleLogout} disabled={loading} style={{ padding: 10 }}>
-        {loading ? "Logging out..." : "Logout"}
-      </button>
+    <main className="flex min-h-screen items-center justify-center p-6">
+      <Card className="w-full max-w-sm text-center">
+        <CardHeader>
+          <CardTitle className="text-2xl">Logout</CardTitle>
+          <CardDescription>End your current session</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={handleLogout} disabled={loading} className="w-full">
+            {loading ? "Logging out..." : "Logout"}
+          </Button>
+        </CardContent>
+      </Card>
     </main>
   );
 }

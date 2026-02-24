@@ -3,6 +3,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { IdeaStatus } from "@/types";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface AdminActionsProps {
   ideaId: string;
@@ -14,24 +29,20 @@ export default function AdminActions({ ideaId, currentStatus }: AdminActionsProp
   const [status, setStatus] = useState<string>(currentStatus);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   async function handleStatusUpdate(newStatus: string) {
     // Reject requires a comment of at least 10 characters (FR-26)
     if (newStatus === "rejected") {
       if (!comment.trim()) {
-        setError("A comment is required when rejecting an idea.");
+        toast.error("A comment is required when rejecting an idea.");
         return;
       }
       if (comment.trim().length < 10) {
-        setError("Rejection comment must be at least 10 characters.");
+        toast.error("Rejection comment must be at least 10 characters.");
         return;
       }
     }
 
-    setError(null);
-    setSuccess(null);
     setLoading(true);
 
     try {
@@ -50,10 +61,10 @@ export default function AdminActions({ ideaId, currentStatus }: AdminActionsProp
       }
 
       setStatus(newStatus);
-      setSuccess(`Status updated to ${newStatus}`);
+      toast.success(`Status updated to ${newStatus}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -62,52 +73,78 @@ export default function AdminActions({ ideaId, currentStatus }: AdminActionsProp
   const isTerminal = status === "accepted" || status === "rejected";
 
   return (
-    <div style={{ marginTop: 12, padding: 12, background: "#fafafa", borderRadius: 4 }}>
-      {error && <p style={{ color: "red", margin: "0 0 8px" }}>{error}</p>}
-      {success && <p style={{ color: "green", margin: "0 0 8px" }}>{success}</p>}
-
+    <div className="rounded-md border bg-muted/30 p-3 mt-1">
       {!isTerminal && (
         <>
-          <label style={{ display: "block", marginBottom: 8 }}>
-            Comment {status !== "rejected" ? "(optional, required for reject)" : "(required)"}
-            <textarea
+          <div className="grid gap-2 mb-3">
+            <Label htmlFor={`comment-${ideaId}`}>
+              Comment {status !== "rejected" ? "(optional, required for reject)" : "(required)"}
+            </Label>
+            <Textarea
+              id={`comment-${ideaId}`}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={2}
-              style={{ width: "100%", padding: 8, marginTop: 4 }}
               placeholder="Add evaluator feedback..."
             />
-          </label>
+          </div>
 
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="flex gap-2">
             {status === "submitted" && (
-              <button
+              <Button
                 onClick={() => handleStatusUpdate("under_review")}
                 disabled={loading}
-                style={{ padding: "6px 16px", background: "#0070f3", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}
+                variant="secondary"
+                size="sm"
               >
                 Start Review
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               onClick={() => handleStatusUpdate("accepted")}
               disabled={loading}
-              style={{ padding: "6px 16px", background: "#0a0", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}
+              size="sm"
             >
               Accept
-            </button>
-            <button
-              onClick={() => handleStatusUpdate("rejected")}
-              disabled={loading}
-              style={{ padding: "6px 16px", background: "#c00", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}
-            >
-              Reject
-            </button>
+            </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button disabled={loading} variant="destructive" size="sm">
+                  Reject
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reject this idea?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action will mark the idea as rejected. A comment of at least 10 characters is required.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                {!comment.trim() || comment.trim().length < 10 ? (
+                  <p className="text-sm text-destructive">
+                    Please add a comment (min 10 chars) before rejecting.
+                  </p>
+                ) : null}
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => handleStatusUpdate("rejected")}
+                    disabled={!comment.trim() || comment.trim().length < 10}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Confirm Reject
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </>
       )}
 
-      {isTerminal && <p style={{ fontStyle: "italic", color: "#666" }}>This idea has been finalized.</p>}
+      {isTerminal && (
+        <p className="text-sm text-muted-foreground italic">This idea has been finalized.</p>
+      )}
     </div>
   );
 }

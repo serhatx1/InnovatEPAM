@@ -6,6 +6,20 @@
 
 ---
 
+## Phase 0: UI Foundation — Tailwind CSS + shadcn/ui Setup
+
+### T0: Install Tailwind CSS + shadcn/ui and configure design system
+
+- [X] Install Tailwind CSS v4 and configure with Next.js App Router
+- [X] Initialize shadcn/ui (`npx shadcn@latest init`) — New York style, zinc base, CSS variables
+- [X] Add required shadcn components: button, input, textarea, select, label, card, badge, dialog, alert-dialog, toast (sonner), form, separator, dropdown-menu
+- [X] Update `globals.css` with Tailwind directives and shadcn CSS variables (minimalist neutral palette)
+- [X] Create `src/lib/utils.ts` with `cn()` helper (clsx + tailwind-merge)
+- [X] Update `src/app/layout.tsx` with font + Toaster provider
+- [X] Verify `npm run dev` renders cleanly with new styling base
+
+---
+
 ## Phase 1: Foundation — Constants & Validation (TDD)
 
 ### T1: Create shared constants and update validation schemas [P]
@@ -49,22 +63,39 @@
 
 ---
 
-## Phase 4: UI Alignment
+## Phase 4: UI Overhaul — shadcn/ui Component Migration
 
-### T6: Update categories in new idea form
+### T6: Refactor auth pages (login, register) with shadcn components
 
-- [X] Import `IDEA_CATEGORIES` from constants in `src/app/ideas/new/page.tsx`
-- [X] Replace hardcoded `CATEGORIES` array with imported constant
+- [X] Replace raw HTML form elements with shadcn Card, Input, Button, Label, Form
+- [X] Add Toast notifications for login/register errors and success
+- [X] Clean minimalist layout: centered card, generous padding, neutral colors
+- [X] Verify auth pages render with shadcn components; flows work end-to-end
 
-### T7: Add client-side file validation feedback
+### T7: Refactor idea submission form with shadcn components
 
-- [X] Add `accept=".pdf,.png,.jpg,.jpeg,.docx"` to file input
-- [X] Add client-side file size/type validation before form submission
+- [X] Replace raw inputs/selects with shadcn Input, Textarea, Select, Button, Label
+- [X] Import IDEA_CATEGORIES from constants for category Select
+- [X] Add client-side file validation with Toast feedback for size/type errors
+- [X] Add character count display for title and description
+- [X] Use Card wrapper for the form with clean spacing
+- [X] Verify form renders with shadcn components; validation uses toasts + inline errors
 
-### T8: Add client-side validation feedback for title/description
+### T8: Refactor idea listing and detail pages with shadcn components
 
-- [X] Add `minLength`/`maxLength` attributes to title input and description textarea
-- [X] Enforce 10-char minimum for rejection comment in AdminActions component
+- [X] Render each idea as a shadcn Card with Badge for status (color-coded per NFR-05)
+- [X] Use Separator between sections on detail page
+- [X] Attachment download as Button variant link
+- [X] Admin comments displayed in a distinct Card section
+- [X] Verify listing shows cards; detail page uses proper components
+
+### T8b: Refactor admin review page with shadcn components
+
+- [X] Replace raw HTML with shadcn Card, Button, Textarea, Badge
+- [X] Use AlertDialog for reject confirmation (with mandatory comment textarea)
+- [X] Use Toast for accept/reject success/error feedback
+- [X] Enforce 10-char minimum on rejection comment via form validation
+- [X] Verify admin actions use modals/dialogs; feedback appears as toasts
 
 ---
 

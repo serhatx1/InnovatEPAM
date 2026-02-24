@@ -68,10 +68,10 @@ Summary:
 2. Add dynamic schema builder in existing validation module(s) (`src/lib/validation/idea.ts` + helper file if needed).
 3. Add tests first for required/format/range checks by active category.
 
-### Workstream B — Existing form page enhancement (MVP-simple UI)
+### Workstream B — Existing form page enhancement (shadcn/ui components)
 
 1. Update `src/app/ideas/new/page.tsx` to render dynamic fields conditionally by selected category.
-2. Keep current layout/style and single-page flow.
+2. Use shadcn/ui components (Input, Select, Textarea, Label) for all dynamic fields — consistent with ADR-004 design system.
 3. Clear inactive category values on category switch.
 4. Build `category_fields` payload from active inputs only.
 
