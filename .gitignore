@@ -25,3 +25,6 @@ Thumbs.db
 # SpecKit / agent-sensitive
 .github/.copilot/
 .claude/
+
+# Supabase local artifacts
+supabase/.temp/
