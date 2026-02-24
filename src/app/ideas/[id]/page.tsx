@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAttachmentUrl } from "@/lib/supabase/storage";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getUserRole, getIdeaById } from "@/lib/queries";
+import { getIdeaById, getUserRole } from "@/lib/queries";
 
 const STATUS_BADGE: Record<string, string> = {
   submitted: "🟡 Submitted",
@@ -27,24 +27,22 @@ export default async function IdeaDetailPage({
 
   const { data: typedIdea, error } = await getIdeaById(supabase, id);
 
+  // Fetch submitter email (FR-19/S6: show submitter name)
+  let submitterEmail: string | null = null;
+  if (typedIdea) {
+    const { data: profile } = await supabase
+      .from("user_profile")
+      .select("email")
+      .eq("id", typedIdea.user_id)
+      .single();
+    submitterEmail = profile?.email ?? null;
+  }
+
   if (error || !typedIdea) {
     return (
       <main style={{ padding: 24 }}>
         <h1>Idea Not Found</h1>
         <p>The idea you are looking for does not exist.</p>
-        <Link href="/ideas">← Back to Ideas</Link>
-      </main>
-    );
-  }
-
-  // Check access: owner or admin
-  const role = await getUserRole(supabase, user.id);
-
-  if (typedIdea.user_id !== user.id && role !== "admin") {
-    return (
-      <main style={{ padding: 24 }}>
-        <h1>Access Denied</h1>
-        <p>You do not have permission to view this idea.</p>
         <Link href="/ideas">← Back to Ideas</Link>
       </main>
     );
@@ -71,6 +69,10 @@ export default async function IdeaDetailPage({
           <tr>
             <td style={{ padding: "4px 16px 4px 0", fontWeight: "bold" }}>Status</td>
             <td>{STATUS_BADGE[typedIdea.status] ?? typedIdea.status}</td>
+          </tr>
+          <tr>
+            <td style={{ padding: "4px 16px 4px 0", fontWeight: "bold" }}>Submitter</td>
+            <td>{submitterEmail ?? "Unknown"}</td>
           </tr>
           <tr>
             <td style={{ padding: "4px 16px 4px 0", fontWeight: "bold" }}>Submitted</td>

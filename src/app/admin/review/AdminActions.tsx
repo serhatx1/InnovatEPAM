@@ -18,10 +18,16 @@ export default function AdminActions({ ideaId, currentStatus }: AdminActionsProp
   const [success, setSuccess] = useState<string | null>(null);
 
   async function handleStatusUpdate(newStatus: string) {
-    // Reject requires a comment
-    if (newStatus === "rejected" && !comment.trim()) {
-      setError("A comment is required when rejecting an idea.");
-      return;
+    // Reject requires a comment of at least 10 characters (FR-26)
+    if (newStatus === "rejected") {
+      if (!comment.trim()) {
+        setError("A comment is required when rejecting an idea.");
+        return;
+      }
+      if (comment.trim().length < 10) {
+        setError("Rejection comment must be at least 10 characters.");
+        return;
+      }
     }
 
     setError(null);

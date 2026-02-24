@@ -32,8 +32,9 @@ export default function RegisterPage() {
       return;
     }
 
-    setMessage("Registration successful. You can now login.");
-    router.push("/auth/login");
+    setMessage("Registration successful. Redirecting...");
+    router.push("/ideas");
+    router.refresh();
   }
 
   return (

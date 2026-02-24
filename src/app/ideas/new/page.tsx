@@ -2,8 +2,9 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { IDEA_CATEGORIES, MAX_FILE_SIZE, ALLOWED_FILE_TYPES } from "@/lib/constants";
 
-const CATEGORIES = ["Process Improvement", "Product Feature", "Cost Reduction", "Culture", "Other"];
+const ACCEPT_EXTENSIONS = ".pdf,.png,.jpg,.jpeg,.docx";
 
 export default function NewIdeaPage() {
   const router = useRouter();
@@ -16,6 +17,21 @@ export default function NewIdeaPage() {
     setLoading(true);
 
     const formData = new FormData(event.currentTarget);
+
+    // Client-side file validation (EC3, EC4)
+    const file = formData.get("file") as File | null;
+    if (file && file.size > 0) {
+      if (file.size > MAX_FILE_SIZE) {
+        setError("File must not exceed 5 MB");
+        setLoading(false);
+        return;
+      }
+      if (!ALLOWED_FILE_TYPES.includes(file.type as (typeof ALLOWED_FILE_TYPES)[number])) {
+        setError("Accepted formats: PDF, PNG, JPG, DOCX");
+        setLoading(false);
+        return;
+      }
+    }
 
     try {
       const res = await fetch("/api/ideas", {
@@ -43,20 +59,24 @@ export default function NewIdeaPage() {
       {error && <p style={{ color: "red" }}>{error}</p>}
       <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
         <label>
-          Title *
+          Title * <small>(5–100 characters)</small>
           <input
             name="title"
             required
+            minLength={5}
+            maxLength={100}
             style={{ width: "100%", padding: 8 }}
             placeholder="Short title for your idea"
           />
         </label>
 
         <label>
-          Description *
+          Description * <small>(20–1000 characters)</small>
           <textarea
             name="description"
             required
+            minLength={20}
+            maxLength={1000}
             rows={5}
             style={{ width: "100%", padding: 8 }}
             placeholder="Describe your innovation idea in detail"
@@ -67,7 +87,7 @@ export default function NewIdeaPage() {
           Category *
           <select name="category" required style={{ width: "100%", padding: 8 }}>
             <option value="">Select a category</option>
-            {CATEGORIES.map((cat) => (
+            {IDEA_CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
               </option>
@@ -76,8 +96,8 @@ export default function NewIdeaPage() {
         </label>
 
         <label>
-          Attachment (optional)
-          <input name="file" type="file" style={{ width: "100%" }} />
+          Attachment (optional, max 5 MB — PDF, PNG, JPG, DOCX)
+          <input name="file" type="file" accept={ACCEPT_EXTENSIONS} style={{ width: "100%" }} />
         </label>
 
         <button

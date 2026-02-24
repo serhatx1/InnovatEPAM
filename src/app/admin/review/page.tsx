@@ -33,7 +33,12 @@ export default async function AdminReviewPage() {
     );
   }
 
-  const { data: ideaList, error } = await listIdeas(supabase);
+  const { data: allIdeas, error } = await listIdeas(supabase);
+
+  // FR-24: Show only actionable ideas (submitted, under_review)
+  const ideaList = (allIdeas ?? []).filter(
+    (idea) => idea.status === "submitted" || idea.status === "under_review"
+  );
 
   if (error) {
     return (
