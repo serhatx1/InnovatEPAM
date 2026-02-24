@@ -88,6 +88,19 @@ export default async function IdeaDetailPage({
       <h2>Description</h2>
       <p style={{ whiteSpace: "pre-wrap" }}>{typedIdea.description}</p>
 
+      {typedIdea.category_fields && Object.keys(typedIdea.category_fields).length > 0 && (
+        <>
+          <h2>Category Details</h2>
+          <ul>
+            {Object.entries(typedIdea.category_fields).map(([key, value]) => (
+              <li key={key}>
+                <strong>{key.replaceAll("_", " ")}:</strong> {String(value)}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
       {attachmentDownloadUrl && (
         <>
           <h2>Attachment</h2>
