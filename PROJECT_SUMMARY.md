@@ -29,7 +29,7 @@ InnovatEPAM Portal is an internal employee innovation management platform where 
 ## Technical Stack
 
 Based on ADRs:
-- **Framework**: Next.js 15 (App Router) — [ADR-001](docs/adr/ADR-001-nextjs-app-router.md)
+- **Framework**: Next.js 16.1 (App Router) — [ADR-001](docs/adr/ADR-001-nextjs-app-router.md)
 - **Database**: Supabase Postgres with RLS — [ADR-002](docs/adr/ADR-002-supabase-auth-and-storage.md)
 - **Authentication**: Supabase Auth (email/password) — [ADR-002](docs/adr/ADR-002-supabase-auth-and-storage.md)
 - **Storage**: Supabase Storage — [ADR-002](docs/adr/ADR-002-supabase-auth-and-storage.md)
@@ -37,8 +37,9 @@ Based on ADRs:
 
 ## Test Coverage
 
-- **Tests passing**: 19 tests (5 test files)
-- **Test areas**: Input validation, role helpers, type contracts, API route smoke tests
+- **Overall**: ≥85% for `src/lib/` (business logic)
+- **Tests passing**: 93 tests (11 test files)
+- **Test areas**: Constants, validation schemas (idea + file + status), status transitions, role helpers, type contracts, middleware, queries (ideas, profiles), storage, API route smoke tests
 
 ## Transformation Reflection
 
