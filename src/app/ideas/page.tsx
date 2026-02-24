@@ -38,21 +38,23 @@ export default async function IdeasListPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-3xl p-6">
-        <h1 className="text-2xl font-bold">Ideas</h1>
+      <main className="mx-auto max-w-4xl px-6 py-10">
+        <h1 className="text-3xl font-semibold tracking-tight">Ideas</h1>
         <p className="text-destructive mt-2">Error loading ideas: {error}</p>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <main className="mx-auto max-w-4xl px-6 py-10">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Ideas</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Ideas</h1>
         <Button asChild>
           <Link href="/ideas/new">+ New Idea</Link>
         </Button>
       </div>
+
+      <p className="mt-2 text-sm text-muted-foreground">Discover and track innovation submissions.</p>
 
       {isAdmin && (
         <p className="mt-2">
@@ -62,18 +64,18 @@ export default async function IdeasListPage() {
         </p>
       )}
 
-      <Separator className="my-4" />
+      <Separator className="my-6" />
 
       {ideaList.length === 0 ? (
         <p className="text-muted-foreground">No ideas yet. Be the first to submit one!</p>
       ) : (
-        <div className="grid gap-3">
+        <div className="grid gap-4">
           {ideaList.map((idea) => (
             <Link key={idea.id} href={`/ideas/${idea.id}`} className="block">
-              <Card className="hover:bg-muted/50 transition-colors">
-                <CardHeader className="pb-2">
+              <Card className="border-border/60 shadow-none transition-colors hover:bg-muted/40">
+                <CardHeader className="pb-1">
                   <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-base">{idea.title}</CardTitle>
+                    <CardTitle className="text-lg font-medium leading-tight">{idea.title}</CardTitle>
                     <Badge variant={STATUS_VARIANT[idea.status] ?? "outline"}>
                       {STATUS_LABEL[idea.status] ?? idea.status}
                     </Badge>

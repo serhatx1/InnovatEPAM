@@ -51,8 +51,8 @@ export default async function IdeaDetailPage({
 
   if (error || !typedIdea) {
     return (
-      <main className="mx-auto max-w-2xl p-6">
-        <h1 className="text-2xl font-bold">Idea Not Found</h1>
+      <main className="mx-auto max-w-3xl px-6 py-10">
+        <h1 className="text-3xl font-semibold tracking-tight">Idea Not Found</h1>
         <p className="text-muted-foreground mt-2">The idea you are looking for does not exist.</p>
         <Button asChild variant="ghost" size="sm" className="mt-4">
           <Link href="/ideas">← Back to Ideas</Link>
@@ -68,15 +68,15 @@ export default async function IdeaDetailPage({
   }
 
   return (
-    <main className="mx-auto max-w-2xl p-6">
+    <main className="mx-auto max-w-3xl px-6 py-10">
       <Button asChild variant="ghost" size="sm" className="mb-4">
         <Link href="/ideas">← Back to Ideas</Link>
       </Button>
 
-      <Card>
+      <Card className="border-border/60 shadow-none">
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
-            <CardTitle className="text-2xl">{typedIdea.title}</CardTitle>
+            <CardTitle className="text-3xl font-semibold tracking-tight">{typedIdea.title}</CardTitle>
             <Badge variant={STATUS_VARIANT[typedIdea.status] ?? "outline"}>
               {STATUS_LABEL[typedIdea.status] ?? typedIdea.status}
             </Badge>
@@ -84,7 +84,7 @@ export default async function IdeaDetailPage({
         </CardHeader>
         <CardContent className="grid gap-4">
           {/* Meta info */}
-          <div className="grid grid-cols-2 gap-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-y-2 text-sm leading-6">
             <span className="font-medium text-muted-foreground">Category</span>
             <span>{typedIdea.category}</span>
             <span className="font-medium text-muted-foreground">Submitter</span>
@@ -140,7 +140,7 @@ export default async function IdeaDetailPage({
           {typedIdea.evaluator_comment && (
             <>
               <Separator />
-              <Card className="bg-muted/50">
+              <Card className="border-border/40 bg-muted/40 shadow-none">
                 <CardContent className="pt-4">
                   <h2 className="text-sm font-medium text-muted-foreground mb-1">Evaluator Comment</h2>
                   <p className="whitespace-pre-wrap text-sm">{typedIdea.evaluator_comment}</p>

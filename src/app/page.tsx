@@ -5,13 +5,17 @@ import { Separator } from "@/components/ui/separator";
 
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <Card className="w-full max-w-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold tracking-tight">InnovatEPAM Portal</CardTitle>
-          <CardDescription>Employee innovation management platform</CardDescription>
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 py-10">
+      <Card className="w-full max-w-xl border-border/60 shadow-none">
+        <CardHeader className="space-y-2 text-center">
+          <CardTitle className="text-3xl font-semibold tracking-tight md:text-4xl">
+            InnovatEPAM Portal
+          </CardTitle>
+          <CardDescription className="text-base">
+            Employee innovation management platform
+          </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3">
+        <CardContent className="grid gap-4">
           <div className="grid grid-cols-2 gap-3">
             <Button asChild>
               <Link href="/auth/login">Login</Link>
@@ -33,7 +37,7 @@ export default function HomePage() {
             </Button>
           </div>
           <Separator />
-          <Button asChild variant="ghost" size="sm">
+          <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
             <Link href="/auth/logout">Logout</Link>
           </Button>
         </CardContent>

@@ -73,10 +73,10 @@ export default function AdminActions({ ideaId, currentStatus }: AdminActionsProp
   const isTerminal = status === "accepted" || status === "rejected";
 
   return (
-    <div className="rounded-md border bg-muted/30 p-3 mt-1">
+    <div className="mt-1 rounded-md border border-border/60 bg-muted/20 p-4">
       {!isTerminal && (
         <>
-          <div className="grid gap-2 mb-3">
+          <div className="mb-3 grid gap-2">
             <Label htmlFor={`comment-${ideaId}`}>
               Comment {status !== "rejected" ? "(optional, required for reject)" : "(required)"}
             </Label>
@@ -89,7 +89,7 @@ export default function AdminActions({ ideaId, currentStatus }: AdminActionsProp
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {status === "submitted" && (
               <Button
                 onClick={() => handleStatusUpdate("under_review")}
@@ -143,7 +143,7 @@ export default function AdminActions({ ideaId, currentStatus }: AdminActionsProp
       )}
 
       {isTerminal && (
-        <p className="text-sm text-muted-foreground italic">This idea has been finalized.</p>
+        <p className="text-sm italic text-muted-foreground">This idea has been finalized.</p>
       )}
     </div>
   );

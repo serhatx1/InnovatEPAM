@@ -22,10 +22,10 @@ export default function LogoutPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <Card className="w-full max-w-sm text-center">
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 py-10">
+      <Card className="w-full max-w-sm border-border/60 text-center shadow-none">
         <CardHeader>
-          <CardTitle className="text-2xl">Logout</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Logout</CardTitle>
           <CardDescription>End your current session</CardDescription>
         </CardHeader>
         <CardContent>

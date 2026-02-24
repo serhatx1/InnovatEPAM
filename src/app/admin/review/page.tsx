@@ -36,10 +36,10 @@ export default async function AdminReviewPage() {
 
   if (role !== "admin") {
     return (
-      <main className="mx-auto max-w-2xl p-6">
-        <Card>
+      <main className="mx-auto max-w-3xl px-6 py-10">
+        <Card className="border-border/60 shadow-none">
           <CardContent className="pt-6 text-center">
-            <h1 className="text-xl font-semibold">Access Denied</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Access Denied</h1>
             <p className="text-muted-foreground mt-2">Only administrators can access this page.</p>
             <Button asChild variant="ghost" size="sm" className="mt-4">
               <Link href="/">← Home</Link>
@@ -59,18 +59,19 @@ export default async function AdminReviewPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-3xl p-6">
-        <h1 className="text-2xl font-bold">Admin Review</h1>
+      <main className="mx-auto max-w-4xl px-6 py-10">
+        <h1 className="text-3xl font-semibold tracking-tight">Admin Review</h1>
         <p className="text-destructive mt-2">Error: {error}</p>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <main className="mx-auto max-w-4xl px-6 py-10">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Admin Review Dashboard</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Admin Review Dashboard</h1>
       </div>
+      <p className="mt-2 text-sm text-muted-foreground">Review actionable submissions and finalize decisions.</p>
       <div className="flex gap-2 mt-2">
         <Button asChild variant="ghost" size="sm">
           <Link href="/ideas">← Ideas</Link>
@@ -80,17 +81,17 @@ export default async function AdminReviewPage() {
         </Button>
       </div>
 
-      <Separator className="my-4" />
+      <Separator className="my-6" />
 
       {ideaList.length === 0 ? (
         <p className="text-muted-foreground">No ideas to review.</p>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-5">
           {ideaList.map((idea) => (
-            <Card key={idea.id}>
+            <Card key={idea.id} className="border-border/60 shadow-none">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base">
+                  <CardTitle className="text-lg font-medium leading-tight">
                     <Link href={`/ideas/${idea.id}`} className="hover:underline">
                       {idea.title}
                     </Link>
@@ -111,7 +112,7 @@ export default async function AdminReviewPage() {
                 </p>
 
                 {idea.evaluator_comment && (
-                  <Card className="bg-muted/50">
+                  <Card className="border-border/40 bg-muted/40 shadow-none">
                     <CardContent className="pt-3 pb-3">
                       <p className="text-sm">
                         <span className="font-medium">Comment:</span> {idea.evaluator_comment}

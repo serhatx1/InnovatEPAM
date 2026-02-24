@@ -39,10 +39,10 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
+    <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 py-10">
+      <Card className="w-full max-w-md border-border/60 shadow-none">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-semibold tracking-tight">Welcome back</CardTitle>
           <CardDescription>Sign in to the InnovatEPAM Portal</CardDescription>
         </CardHeader>
         <CardContent>
@@ -73,9 +73,9 @@ export default function LoginPage() {
               {loading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
+          <p className="mt-5 text-center text-sm text-muted-foreground">
             Need an account?{" "}
-            <Link href="/auth/register" className="underline text-primary hover:text-primary/80">
+            <Link href="/auth/register" className="underline underline-offset-4 text-primary hover:text-primary/80">
               Register
             </Link>
           </p>

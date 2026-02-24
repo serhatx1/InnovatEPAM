@@ -111,18 +111,18 @@ export default function NewIdeaPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl p-6">
+    <main className="mx-auto max-w-3xl px-6 py-10">
       <Button asChild variant="ghost" size="sm" className="mb-4">
         <Link href="/ideas">← Back to Ideas</Link>
       </Button>
 
-      <Card>
+      <Card className="border-border/60 shadow-none">
         <CardHeader>
-          <CardTitle className="text-2xl">Submit a New Idea</CardTitle>
+          <CardTitle className="text-3xl font-semibold tracking-tight">Submit a New Idea</CardTitle>
           <CardDescription>Share your innovation proposal with the team</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="grid gap-5">
+          <form onSubmit={handleSubmit} className="grid gap-6">
             {/* Title */}
             <div className="grid gap-2">
               <div className="flex items-center justify-between">
@@ -187,7 +187,7 @@ export default function NewIdeaPage() {
               <>
                 <Separator />
                 <section aria-label="Category-specific fields" className="grid gap-4">
-                  <h3 className="text-sm font-medium">Category Details</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground">Category Details</h3>
                   {activeCategoryFields.map((field) => {
                     const errorMessages = categoryFieldErrors[field.field_key] ?? [];
                     const fieldValue = categoryFieldValues[field.field_key] ?? "";
@@ -258,7 +258,7 @@ export default function NewIdeaPage() {
               <p className="text-xs text-muted-foreground">Max 5 MB — PDF, PNG, JPG, DOCX</p>
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full">
+            <Button type="submit" disabled={loading} className="w-full md:w-auto">
               {loading ? "Submitting..." : "Submit Idea"}
             </Button>
           </form>
