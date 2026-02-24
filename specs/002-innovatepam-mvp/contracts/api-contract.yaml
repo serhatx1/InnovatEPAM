@@ -1,0 +1,55 @@
+openapi: 3.0.3
+info:
+  title: InnovatEPAM MVP API
+  version: 0.1.0
+paths:
+  /api/ideas:
+    get:
+      summary: List ideas
+      responses:
+        '200':
+          description: Idea list
+    post:
+      summary: Create a new idea
+      responses:
+        '201':
+          description: Idea created
+  /api/ideas/{id}:
+    get:
+      summary: Get idea detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Idea detail
+  /api/admin/ideas/{id}/status:
+    patch:
+      summary: Update idea status (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [under_review, accepted, rejected]
+                evaluatorComment:
+                  type: string
+      responses:
+        '200':
+          description: Status updated
+        '403':
+          description: Forbidden
