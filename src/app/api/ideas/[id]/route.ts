@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getAttachmentUrl } from "@/lib/supabase/storage";
-import { getUserRole, getIdeaById } from "@/lib/queries";
+import { getIdeaById } from "@/lib/queries";
 
 /**
  * GET /api/ideas/[id] — Get a single idea by ID.
+ * Any authenticated user can view any idea (FR-19).
  */
 export async function GET(
   _request: NextRequest,
@@ -25,13 +26,6 @@ export async function GET(
 
   if (error || !idea) {
     return NextResponse.json({ error: "Idea not found" }, { status: 404 });
-  }
-
-  // Check access: owner or admin
-  const role = await getUserRole(supabase, user.id);
-
-  if (idea.user_id !== user.id && role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Resolve signed URL for attachment if present

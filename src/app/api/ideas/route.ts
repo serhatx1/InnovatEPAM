@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { ideaSchema } from "@/lib/validation/idea";
+import { ideaSchema, validateFile } from "@/lib/validation/idea";
 import { uploadIdeaAttachment } from "@/lib/supabase/storage";
-import { getUserRole, listIdeas, createIdea } from "@/lib/queries";
+import { listIdeas, createIdea } from "@/lib/queries";
 
 /**
- * GET /api/ideas — List ideas for the current user (or all if admin).
+ * GET /api/ideas — List all ideas for any authenticated user.
  */
 export async function GET() {
   const supabase = await createClient();
@@ -18,12 +18,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const role = await getUserRole(supabase, user.id);
-  const isAdmin = role === "admin";
-
-  const { data: ideas, error } = await listIdeas(supabase, {
-    userId: isAdmin ? undefined : user.id,
-  });
+  const { data: ideas, error } = await listIdeas(supabase);
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 });
@@ -62,9 +57,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Upload file if provided
+  // Upload file if provided — validate first
   let attachmentUrl: string | null = null;
   if (file && file.size > 0) {
+    const fileValidation = validateFile(file);
+    if (!fileValidation.valid) {
+      return NextResponse.json(
+        { error: fileValidation.error },
+        { status: 400 }
+      );
+    }
+
     try {
       attachmentUrl = await uploadIdeaAttachment(file, user.id);
     } catch (err) {
