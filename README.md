@@ -2,9 +2,11 @@
 
 An internal employee innovation management platform where submitters propose ideas with file attachments and admins evaluate them through a structured review workflow.
 
+**Live**: [https://innovat-epam.vercel.app](https://innovat-epam.vercel.app)
+
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router) + React 19 + TypeScript 5
+- **Framework**: Next.js 16.1 (App Router) + React 19 + TypeScript 5.9
 - **Backend**: Supabase (Postgres, Auth, Storage)
 - **Validation**: Zod
 - **Testing**: Vitest + React Testing Library
@@ -103,7 +105,7 @@ tests/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/ideas` | List ideas (own or all for admin) |
+| GET | `/api/ideas` | List all ideas |
 | POST | `/api/ideas` | Create idea (multipart/form-data) |
 | GET | `/api/ideas/[id]` | Get idea detail |
 | PATCH | `/api/admin/ideas/[id]/status` | Update idea status (admin only) |

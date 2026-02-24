@@ -4,6 +4,8 @@
 
 InnovatEPAM Portal is an internal employee innovation management platform where submitters propose ideas with file attachments and admins evaluate them through a structured review workflow.
 
+**Live**: [https://innovat-epam.vercel.app](https://innovat-epam.vercel.app)
+
 ## Features Completed
 
 ### MVP Features
