@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
+import { updateSession } from "@/lib/supabase/middleware";
 
 // Mock the supabase middleware module
 vi.mock("@/lib/supabase/middleware", () => ({
-  updateSession: vi.fn().mockResolvedValue(NextResponse.next()),
+  updateSession: vi.fn(),
 }));
 
 import { middleware, config } from "../../middleware";
@@ -23,6 +24,10 @@ function createRequest(pathname: string, cookies: Record<string, string> = {}): 
 describe("middleware", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(updateSession).mockResolvedValue({
+      response: NextResponse.next(),
+      user: null,
+    });
   });
 
   it("allows unauthenticated access to /auth/login", async () => {
@@ -59,17 +64,27 @@ describe("middleware", () => {
   });
 
   it("allows authenticated requests to /ideas", async () => {
-    const req = createRequest("/ideas", {
-      "sb-test-auth-token": "some-token",
+    vi.mocked(updateSession).mockResolvedValueOnce({
+      response: NextResponse.next(),
+      user: {
+        id: "user-1",
+      } as never,
     });
+
+    const req = createRequest("/ideas");
     const res = await middleware(req);
     expect(res.status).not.toBe(307);
   });
 
   it("allows authenticated requests to /admin/review", async () => {
-    const req = createRequest("/admin/review", {
-      "sb-test-auth-token": "some-token",
+    vi.mocked(updateSession).mockResolvedValueOnce({
+      response: NextResponse.next(),
+      user: {
+        id: "user-2",
+      } as never,
     });
+
+    const req = createRequest("/admin/review");
     const res = await middleware(req);
     expect(res.status).not.toBe(307);
   });
