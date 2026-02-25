@@ -184,15 +184,15 @@
 
 ### T13: Update idea detail page for multi-attachment display
 
-- [ ] Write tests for detail page renders `AttachmentListDetail` with all attachments in tests/unit/idea-detail-attachments.test.tsx
-- [ ] Write tests for legacy idea with single `attachment_url` shows attachment in list format
-- [ ] Write tests for new idea with multiple attachments shows all with thumbnails/icons
-- [ ] Write tests for image thumbnails are clickable (lightbox)
-- [ ] Write tests for download links work for each attachment
-- [ ] Fetch attachments from API response in src/app/ideas/[id]/page.tsx
-- [ ] Render `AttachmentListDetail` component
-- [ ] Handle legacy fallback: if no `attachments[]` but has `attachment_url`, render as single attachment
-- [ ] Verify detail page tests pass for both new and legacy ideas
+- [X] Write tests for detail page renders `AttachmentListDetail` with all attachments in tests/unit/idea-detail-attachments.test.tsx
+- [X] Write tests for legacy idea with single `attachment_url` shows attachment in list format
+- [X] Write tests for new idea with multiple attachments shows all with thumbnails/icons
+- [X] Write tests for image thumbnails are clickable (lightbox)
+- [X] Write tests for download links work for each attachment
+- [X] Fetch attachments from API response in src/app/ideas/[id]/page.tsx
+- [X] Render `AttachmentListDetail` component
+- [X] Handle legacy fallback: if no `attachments[]` but has `attachment_url`, render as single attachment
+- [X] Verify detail page tests pass for both new and legacy ideas
 
 ---
 

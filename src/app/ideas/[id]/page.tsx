@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
-import { getAttachmentUrl } from "@/lib/supabase/storage";
+import { getAttachmentUrl, getAttachmentDownloadUrl } from "@/lib/supabase/storage";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getIdeaById, getUserRole } from "@/lib/queries";
+import { getIdeaById, getUserRole, getAttachmentsByIdeaId } from "@/lib/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { AttachmentListDetail, type AttachmentDetail } from "@/components/ui/attachment-list-detail";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   submitted: "outline",
@@ -61,10 +62,44 @@ export default async function IdeaDetailPage({
     );
   }
 
-  // Resolve attachment signed URL
-  let attachmentDownloadUrl: string | null = null;
-  if (typedIdea.attachment_url) {
-    attachmentDownloadUrl = await getAttachmentUrl(typedIdea.attachment_url);
+  // ── Resolve attachments ────────────────────────────────
+  const attachmentDetails: AttachmentDetail[] = [];
+
+  const { data: attachmentRecords } = await getAttachmentsByIdeaId(supabase, id);
+
+  if (attachmentRecords && attachmentRecords.length > 0) {
+    // New multi-attachment flow
+    for (const att of attachmentRecords) {
+      const url = await getAttachmentDownloadUrl(att.storage_path, att.original_file_name);
+      if (url) {
+        attachmentDetails.push({
+          id: att.id,
+          idea_id: att.idea_id,
+          original_file_name: att.original_file_name,
+          file_size: att.file_size,
+          mime_type: att.mime_type,
+          storage_path: att.storage_path,
+          upload_order: att.upload_order,
+          download_url: url,
+        });
+      }
+    }
+  } else if (typedIdea.attachment_url) {
+    // Legacy single-attachment fallback
+    const legacyUrl = await getAttachmentUrl(typedIdea.attachment_url);
+    if (legacyUrl) {
+      const fileName = typedIdea.attachment_url.split("/").pop() ?? "attachment";
+      attachmentDetails.push({
+        id: null,
+        idea_id: typedIdea.id,
+        original_file_name: fileName,
+        file_size: null,
+        mime_type: null,
+        storage_path: typedIdea.attachment_url,
+        upload_order: 0,
+        download_url: legacyUrl,
+      });
+    }
   }
 
   return (
@@ -121,17 +156,13 @@ export default async function IdeaDetailPage({
             </>
           )}
 
-          {/* Attachment */}
-          {attachmentDownloadUrl && (
+          {/* Attachments */}
+          {attachmentDetails.length > 0 && (
             <>
               <Separator />
               <div>
-                <h2 className="text-sm font-medium text-muted-foreground mb-2">Attachment</h2>
-                <Button asChild variant="outline" size="sm">
-                  <a href={attachmentDownloadUrl} target="_blank" rel="noopener noreferrer">
-                    Download Attachment
-                  </a>
-                </Button>
+                <h2 className="text-sm font-medium text-muted-foreground mb-2">Attachments</h2>
+                <AttachmentListDetail attachments={attachmentDetails} />
               </div>
             </>
           )}
