@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AppShell } from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -22,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
-        {children}
+        <AppShell>{children}</AppShell>
         <Toaster richColors position="top-right" />
       </body>
     </html>

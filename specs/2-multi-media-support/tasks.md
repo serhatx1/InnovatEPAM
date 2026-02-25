@@ -10,41 +10,41 @@
 
 ### T1: Update shared constants for multi-file support [P]
 
-- [ ] Write tests for `MAX_FILE_SIZE` equals 10 MB (10,485,760 bytes) in tests/unit/constants.test.ts
-- [ ] Write tests for `MAX_TOTAL_ATTACHMENT_SIZE` equals 25 MB (26,214,400 bytes)
-- [ ] Write tests for `MAX_ATTACHMENTS` equals 5
-- [ ] Write tests for `ALLOWED_FILE_TYPES` contains exactly 10 MIME types (existing 4 + gif, webp, xlsx, pptx, csv, image/gif)
-- [ ] Write tests for `ALLOWED_FILE_EXTENSIONS` maps to human-readable labels for UI display
-- [ ] Update `MAX_FILE_SIZE` from 5MB → 10MB in src/lib/constants.ts
-- [ ] Add `MAX_TOTAL_ATTACHMENT_SIZE = 25 * 1024 * 1024` in src/lib/constants.ts
-- [ ] Add `MAX_ATTACHMENTS = 5` in src/lib/constants.ts
-- [ ] Expand `ALLOWED_FILE_TYPES` array with new MIME types in src/lib/constants.ts
-- [ ] Add `ALLOWED_FILE_EXTENSIONS` map (MIME → display label) in src/lib/constants.ts
-- [ ] Verify all new + existing constants tests pass; update tests referencing old 5MB limit
+- [X] Write tests for `MAX_FILE_SIZE` equals 10 MB (10,485,760 bytes) in tests/unit/constants.test.ts
+- [X] Write tests for `MAX_TOTAL_ATTACHMENT_SIZE` equals 25 MB (26,214,400 bytes)
+- [X] Write tests for `MAX_ATTACHMENTS` equals 5
+- [X] Write tests for `ALLOWED_FILE_TYPES` contains exactly 9 unique MIME types (pdf, png, jpeg, gif, webp, docx, xlsx, pptx, csv)
+- [X] Write tests for `FILE_TYPE_LABELS` maps to human-readable labels for UI display
+- [X] Update `MAX_FILE_SIZE` from 5MB → 10MB in src/lib/constants.ts
+- [X] Add `MAX_TOTAL_ATTACHMENT_SIZE = 25 * 1024 * 1024` in src/lib/constants.ts
+- [X] Add `MAX_ATTACHMENTS = 5` in src/lib/constants.ts
+- [X] Expand `ALLOWED_FILE_TYPES` array with new MIME types in src/lib/constants.ts
+- [X] Add `FILE_TYPE_LABELS` map (MIME → display label) in src/lib/constants.ts
+- [X] Verify all new + existing constants tests pass; update tests referencing old 5MB limit
 
 ### T2: Add IdeaAttachment type and update shared types [P]
 
-- [ ] Write tests for `IdeaAttachment` type has required fields: id, idea_id, original_file_name, file_size, mime_type, storage_path, upload_order, created_at in tests/unit/types.test.ts
-- [ ] Write tests that `Idea` type retains `attachment_url` as `string | null` (legacy)
-- [ ] Add `IdeaAttachment` interface to src/types/index.ts
-- [ ] Keep existing `Idea.attachment_url` field unchanged (backward compat)
-- [ ] Verify type tests pass; no downstream type errors
+- [X] Write tests for `IdeaAttachment` type has required fields: id, idea_id, original_file_name, file_size, mime_type, storage_path, upload_order, created_at in tests/unit/types.test.ts
+- [X] Write tests that `Idea` type retains `attachment_url` as `string | null` (legacy)
+- [X] Add `IdeaAttachment` interface to src/types/index.ts
+- [X] Keep existing `Idea.attachment_url` field unchanged (backward compat)
+- [X] Verify type tests pass; no downstream type errors
 
 ### T3: Update file validation for multi-file rules
 
-- [ ] Write tests for `validateFile` rejects files > 10 MB (updated from 5 MB) in tests/unit/validation.test.ts
-- [ ] Write tests for `validateFile` rejects empty (0-byte) files
-- [ ] Write tests for `validateFile` rejects disallowed MIME types
-- [ ] Write tests for `validateFile` accepts all 10 supported MIME types
-- [ ] Write tests for `validateFiles` (new) rejects if count > 5
-- [ ] Write tests for `validateFiles` rejects if total size > 25 MB
-- [ ] Write tests for `validateFiles` returns per-file errors without failing all valid files
-- [ ] Write tests for `validateFiles` returns null (success) for 0 files (optional)
-- [ ] Write tests for `validateFiles` returns null for 1–5 valid files within total size
-- [ ] Update `validateFile` to check for 0-byte and use new 10MB limit + expanded types in src/lib/validation/idea.ts
-- [ ] Create `validateFiles(files: File[])` that validates count, individual files, and total size in src/lib/validation/idea.ts
-- [ ] Return structured error: `{ valid: File[]; errors: Array<{ index: number; name: string; error: string }> } | null`
-- [ ] Verify all validation tests pass; update existing tests referencing old 5MB limit
+- [X] Write tests for `validateFile` rejects files > 10 MB (updated from 5 MB) in tests/unit/validation.test.ts
+- [X] Write tests for `validateFile` rejects empty (0-byte) files
+- [X] Write tests for `validateFile` rejects disallowed MIME types
+- [X] Write tests for `validateFile` accepts all 9 supported MIME types
+- [X] Write tests for `validateFiles` (new) rejects if count > 5
+- [X] Write tests for `validateFiles` rejects if total size > 25 MB
+- [X] Write tests for `validateFiles` returns per-file errors without failing all valid files
+- [X] Write tests for `validateFiles` returns null (success) for 0 files (optional)
+- [X] Write tests for `validateFiles` returns null for 1–5 valid files within total size
+- [X] Update `validateFile` to check for 0-byte and use new 10MB limit + expanded types in src/lib/validation/idea.ts
+- [X] Create `validateFiles(files: File[])` that validates count, individual files, and total size in src/lib/validation/idea.ts
+- [X] Return structured error: `{ countError?, totalSizeError?, fileErrors?, valid[] } | null`
+- [X] Verify all validation tests pass; update existing tests referencing old 5MB limit
 
 ---
 
@@ -52,37 +52,37 @@
 
 ### T4: Create idea_attachment migration
 
-- [ ] Create `supabase/migrations/004_add_idea_attachments.sql` with `idea_attachment` table
-- [ ] Table columns: id (UUID PK), idea_id (FK → idea ON DELETE CASCADE), original_file_name (TEXT NOT NULL), file_size (BIGINT NOT NULL), mime_type (TEXT NOT NULL), storage_path (TEXT NOT NULL UNIQUE), upload_order (INT NOT NULL), created_at (TIMESTAMPTZ DEFAULT now())
-- [ ] Add index on `idea_id` (FK index)
-- [ ] Add composite index on `(idea_id, upload_order)` for ordered retrieval
-- [ ] Enable RLS on `idea_attachment`
-- [ ] Add SELECT policy: all authenticated users can read all attachments
-- [ ] Add INSERT policy: user can insert attachments for ideas they own
-- [ ] Add DELETE policy: admins only
-- [ ] Verify migration runs without error
+- [X] Create `supabase/migrations/004_add_idea_attachments.sql` with `idea_attachment` table
+- [X] Table columns: id (UUID PK), idea_id (FK → idea ON DELETE CASCADE), original_file_name (TEXT NOT NULL), file_size (BIGINT NOT NULL), mime_type (TEXT NOT NULL), storage_path (TEXT NOT NULL UNIQUE), upload_order (INT NOT NULL), created_at (TIMESTAMPTZ DEFAULT now())
+- [X] Add index on `idea_id` (FK index)
+- [X] Add composite index on `(idea_id, upload_order)` for ordered retrieval
+- [X] Enable RLS on `idea_attachment`
+- [X] Add SELECT policy: all authenticated users can read all attachments
+- [X] Add INSERT policy: user can insert attachments for ideas they own
+- [X] Add DELETE policy: admins only
+- [X] Verify migration runs without error
 
 ### T5: Add batch storage operations with atomic cleanup
 
-- [ ] Write tests for `uploadMultipleAttachments` uploads N files and returns N storage paths in tests/unit/storage.test.ts
-- [ ] Write tests for `uploadMultipleAttachments` rolls back all uploaded files if any upload fails
-- [ ] Write tests for `deleteAttachments` deletes files by storage paths (for cleanup)
-- [ ] Write tests for `getAttachmentDownloadUrl` generates signed URL with original file name
-- [ ] Write tests that existing `uploadIdeaAttachment` and `getAttachmentUrl` continue to work (legacy)
-- [ ] Implement `uploadMultipleAttachments(files: File[], userId: string)` in src/lib/supabase/storage.ts
-- [ ] Implement `deleteAttachments(paths: string[])` in src/lib/supabase/storage.ts
-- [ ] Implement `getAttachmentDownloadUrl(storagePath: string, originalName: string)` in src/lib/supabase/storage.ts
-- [ ] Verify all storage tests pass; rollback scenario verified
+- [X] Write tests for `uploadMultipleAttachments` uploads N files and returns N storage paths in tests/unit/storage.test.ts
+- [X] Write tests for `uploadMultipleAttachments` rolls back all uploaded files if any upload fails
+- [X] Write tests for `deleteAttachments` deletes files by storage paths (for cleanup)
+- [X] Write tests for `getAttachmentDownloadUrl` generates signed URL with original file name
+- [X] Write tests that existing `uploadIdeaAttachment` and `getAttachmentUrl` continue to work (legacy)
+- [X] Implement `uploadMultipleAttachments(files: File[], userId: string)` in src/lib/supabase/storage.ts
+- [X] Implement `deleteAttachments(paths: string[])` in src/lib/supabase/storage.ts
+- [X] Implement `getAttachmentDownloadUrl(storagePath: string, originalName: string)` in src/lib/supabase/storage.ts
+- [X] Verify all storage tests pass; rollback scenario verified
 
 ### T6: Add idea_attachment query functions
 
-- [ ] Write tests for `createAttachments(supabase, attachments[])` inserts batch and returns created rows in tests/unit/queries-attachments.test.ts
-- [ ] Write tests for `getAttachmentsByIdeaId(supabase, ideaId)` returns attachments ordered by `upload_order`
-- [ ] Write tests for `deleteAttachmentsByIdeaId(supabase, ideaId)` deletes all attachments for an idea
-- [ ] Write tests for `getAttachmentsForIdeas(supabase, ideaIds[])` returns attachments grouped by idea
-- [ ] Implement all four functions in src/lib/queries/attachments.ts
-- [ ] Export from src/lib/queries/index.ts
-- [ ] Verify all query tests pass (mocked Supabase client)
+- [X] Write tests for `createAttachments(supabase, attachments[])` inserts batch and returns created rows in tests/unit/queries-attachments.test.ts
+- [X] Write tests for `getAttachmentsByIdeaId(supabase, ideaId)` returns attachments ordered by `upload_order`
+- [X] Write tests for `deleteAttachmentsByIdeaId(supabase, ideaId)` deletes all attachments for an idea
+- [X] Write tests for `getAttachmentsForIdeas(supabase, ideaIds[])` returns attachments grouped by idea
+- [X] Implement all four functions in src/lib/queries/attachments.ts
+- [X] Export from src/lib/queries/index.ts
+- [X] Verify all query tests pass (mocked Supabase client)
 
 ---
 
@@ -90,24 +90,24 @@
 
 ### T7: Update POST /api/ideas for multi-file upload
 
-- [ ] Write tests for POST with 0 files → 201 (attachments optional) in tests/integration/api-ideas-multifile.test.ts
-- [ ] Write tests for POST with 1 valid file → 201 with attachment record
-- [ ] Write tests for POST with 5 valid files → 201 with 5 attachment records
-- [ ] Write tests for POST with 6 files → 400 "Maximum 5 files allowed"
-- [ ] Write tests for POST with oversized file → 400 with specific error
-- [ ] Write tests for POST with invalid MIME type → 400 with specific error
-- [ ] Write tests for POST with 0-byte file → 400 with specific error
-- [ ] Write tests for POST with combined size > 25 MB → 400 with total size error
-- [ ] Write tests for POST with upload failure mid-batch → 500 + cleanup (no partial data)
-- [ ] Write tests for POST without auth → 401
-- [ ] Update POST handler to extract multiple files from FormData (`formData.getAll("files")`) in src/app/api/ideas/route.ts
-- [ ] Call `validateFiles()` for server-side validation (security boundary)
-- [ ] Call `uploadMultipleAttachments()` (atomic with rollback)
-- [ ] Insert idea row (without `attachment_url` — new model)
-- [ ] Call `createAttachments()` with file metadata + storage paths
-- [ ] On any DB failure after upload, call `deleteAttachments()` for cleanup
-- [ ] Return idea with attachments in response
-- [ ] Verify all integration tests pass; atomic behavior verified
+- [X] Write tests for POST with 0 files → 201 (attachments optional) in tests/integration/api-ideas-multifile.test.ts
+- [X] Write tests for POST with 1 valid file → 201 with attachment record
+- [X] Write tests for POST with 5 valid files → 201 with 5 attachment records
+- [X] Write tests for POST with 6 files → 400 "Maximum 5 files allowed"
+- [X] Write tests for POST with oversized file → 400 with specific error
+- [X] Write tests for POST with invalid MIME type → 400 with specific error
+- [X] Write tests for POST with 0-byte file → 400 with specific error
+- [X] Write tests for POST with combined size > 25 MB → 400 with total size error
+- [X] Write tests for POST with upload failure mid-batch → 500 + cleanup (no partial data)
+- [X] Write tests for POST without auth → 401
+- [X] Update POST handler to extract multiple files from FormData (`formData.getAll("files")`) in src/app/api/ideas/route.ts
+- [X] Call `validateFiles()` for server-side validation (security boundary)
+- [X] Call `uploadMultipleAttachments()` (atomic with rollback)
+- [X] Insert idea row (without `attachment_url` — new model)
+- [X] Call `createAttachments()` with file metadata + storage paths
+- [X] On any DB failure after upload, call `deleteAttachments()` for cleanup
+- [X] Return idea with attachments in response
+- [X] Verify all integration tests pass; atomic behavior verified
 
 ### T8: Update GET /api/ideas/[id] for multi-attachment response
 

@@ -5,7 +5,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockGetUser = vi.fn();
 const mockListIdeas = vi.fn();
 const mockCreateIdea = vi.fn();
-const mockUploadIdeaAttachment = vi.fn();
+const mockUploadMultipleAttachments = vi.fn();
+const mockDeleteAttachments = vi.fn();
+const mockCreateAttachments = vi.fn();
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
@@ -16,10 +18,21 @@ vi.mock("@/lib/supabase/server", () => ({
 vi.mock("@/lib/queries", () => ({
   listIdeas: (...args: unknown[]) => mockListIdeas(...args),
   createIdea: (...args: unknown[]) => mockCreateIdea(...args),
+  createAttachments: (...args: unknown[]) => mockCreateAttachments(...args),
 }));
 
 vi.mock("@/lib/supabase/storage", () => ({
-  uploadIdeaAttachment: (...args: unknown[]) => mockUploadIdeaAttachment(...args),
+  uploadIdeaAttachment: vi.fn(),
+  uploadMultipleAttachments: (...args: unknown[]) => mockUploadMultipleAttachments(...args),
+  deleteAttachments: (...args: unknown[]) => mockDeleteAttachments(...args),
+}));
+
+vi.mock("@/lib/validation/category-fields", () => ({
+  validateCategoryFieldsForCategory: vi.fn().mockReturnValue({
+    success: true,
+    data: {},
+    errors: {},
+  }),
 }));
 
 // ── Helpers ─────────────────────────────────────────────
@@ -173,7 +186,7 @@ describe("POST /api/ideas", () => {
     formData.set("description", "A valid description that is at least twenty characters long");
     formData.set("category", "Process Improvement");
     formData.set("category_fields", JSON.stringify({ current_process: "Manual review", time_saved_hours: "10" }));
-    formData.set("file", invalidFile);
+    formData.append("files", invalidFile);
 
     const request = { formData: async () => formData } as any;
     const response = await POST(request);
@@ -185,7 +198,7 @@ describe("POST /api/ideas", () => {
 
   it("returns 500 when file upload fails", async () => {
     authedUser();
-    mockUploadIdeaAttachment.mockRejectedValue(new Error("Storage unavailable"));
+    mockUploadMultipleAttachments.mockRejectedValue(new Error("Storage unavailable"));
 
     const { POST } = await import("@/app/api/ideas/route");
 
@@ -196,7 +209,7 @@ describe("POST /api/ideas", () => {
     formData.set("description", "A valid description that is at least twenty characters long");
     formData.set("category", "Process Improvement");
     formData.set("category_fields", JSON.stringify({ current_process: "Manual review", time_saved_hours: "10" }));
-    formData.set("file", validFile);
+    formData.append("files", validFile);
 
     const request = { formData: async () => formData } as any;
     const response = await POST(request);
@@ -256,11 +269,15 @@ describe("POST /api/ideas", () => {
     );
   });
 
-  it("returns 201 with attachment URL when file upload succeeds", async () => {
+  it("returns 201 with attachments when file upload succeeds", async () => {
     authedUser();
-    mockUploadIdeaAttachment.mockResolvedValue("user-1/123-doc.pdf");
-    const createdIdea = { id: "idea-file", attachment_url: "user-1/123-doc.pdf" };
+    mockUploadMultipleAttachments.mockResolvedValue(["user-1/123-doc.pdf"]);
+    const createdIdea = { id: "idea-file", attachment_url: null };
     mockCreateIdea.mockResolvedValue({ data: createdIdea, error: null });
+    const attachments = [
+      { id: "att-1", idea_id: "idea-file", original_file_name: "doc.pdf", upload_order: 1 },
+    ];
+    mockCreateAttachments.mockResolvedValue({ data: attachments, error: null });
 
     const { POST } = await import("@/app/api/ideas/route");
 
@@ -271,17 +288,18 @@ describe("POST /api/ideas", () => {
     formData.set("description", "A valid description that is at least twenty characters long");
     formData.set("category", "Process Improvement");
     formData.set("category_fields", JSON.stringify({ current_process: "Manual review", time_saved_hours: "10" }));
-    formData.set("file", validFile);
+    formData.append("files", validFile);
 
     const request = { formData: async () => formData } as any;
     const response = await POST(request);
     const body = await response.json();
 
     expect(response.status).toBe(201);
-    expect(mockUploadIdeaAttachment).toHaveBeenCalledWith(validFile, "user-1");
+    expect(mockUploadMultipleAttachments).toHaveBeenCalledWith([validFile], "user-1");
     expect(mockCreateIdea).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ attachment_url: "user-1/123-doc.pdf" })
+      expect.objectContaining({ attachment_url: null })
     );
+    expect(body.attachments).toHaveLength(1);
   });
 });

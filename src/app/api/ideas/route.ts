@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { ideaSchema, validateFile } from "@/lib/validation/idea";
+import { ideaSchema, validateFiles } from "@/lib/validation/idea";
 import { validateCategoryFieldsForCategory } from "@/lib/validation/category-fields";
-import { uploadIdeaAttachment } from "@/lib/supabase/storage";
-import { listIdeas, createIdea } from "@/lib/queries";
+import { uploadMultipleAttachments, deleteAttachments } from "@/lib/supabase/storage";
+import { listIdeas, createIdea, createAttachments } from "@/lib/queries";
 
 /**
  * GET /api/ideas — List all ideas for any authenticated user (FR-17).
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   const description = formData.get("description") as string;
   const category = formData.get("category") as string;
   const categoryFieldsRaw = formData.get("category_fields") as string | null;
-  const file = formData.get("file") as File | null;
+  const files = formData.getAll("files").filter((f): f is File => f instanceof File);
 
   // Validate input
   const parsed = ideaSchema.safeParse({ title, description, category });
@@ -95,33 +95,90 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Validate and upload file if provided
-  let attachmentUrl: string | null = null;
-  if (file && file.size > 0) {
-    const fileError = validateFile(file);
-    if (fileError) {
-      return NextResponse.json({ error: fileError }, { status: 400 });
+  // Validate files (multi-file: count, size, type)
+  const filesValidation = validateFiles(files);
+  if (filesValidation) {
+    // Return first actionable error
+    if (filesValidation.countError) {
+      return NextResponse.json({ error: filesValidation.countError }, { status: 400 });
     }
+    if (filesValidation.fileErrors && filesValidation.fileErrors.length > 0) {
+      const first = filesValidation.fileErrors[0];
+      return NextResponse.json(
+        { error: first.error, file: first.name },
+        { status: 400 }
+      );
+    }
+    if (filesValidation.totalSizeError) {
+      return NextResponse.json({ error: filesValidation.totalSizeError }, { status: 400 });
+    }
+  }
+
+  // Upload files atomically (rollback on failure happens inside uploadMultipleAttachments)
+  let storagePaths: string[] = [];
+  if (files.length > 0) {
     try {
-      attachmentUrl = await uploadIdeaAttachment(file, user.id);
+      storagePaths = await uploadMultipleAttachments(files, user.id);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Upload failed";
       return NextResponse.json({ error: message }, { status: 500 });
     }
   }
 
+  // Insert idea row (new model: attachment_url is null)
   const { data: idea, error } = await createIdea(supabase, {
     user_id: user.id,
     title: parsed.data.title,
     description: parsed.data.description,
     category: parsed.data.category,
     category_fields: categoryFieldsResult.data,
-    attachment_url: attachmentUrl,
+    attachment_url: null,
   });
 
-  if (error) {
-    return NextResponse.json({ error }, { status: 500 });
+  if (error || !idea) {
+    // Clean up uploaded files if DB insert fails
+    if (storagePaths.length > 0) {
+      try {
+        await deleteAttachments(storagePaths);
+      } catch {
+        // Best-effort cleanup; log in production
+      }
+    }
+    return NextResponse.json({ error: error ?? "Failed to create idea" }, { status: 500 });
   }
 
-  return NextResponse.json(idea, { status: 201 });
+  // Insert attachment metadata
+  let attachmentRecords = null;
+  if (storagePaths.length > 0) {
+    const attachmentInputs = files.map((file, i) => ({
+      idea_id: idea.id,
+      original_file_name: file.name,
+      file_size: file.size,
+      mime_type: file.type,
+      storage_path: storagePaths[i],
+      upload_order: i + 1,
+    }));
+
+    const { data: attachments, error: attError } = await createAttachments(
+      supabase,
+      attachmentInputs
+    );
+
+    if (attError) {
+      // Clean up uploaded files if attachment insert fails
+      try {
+        await deleteAttachments(storagePaths);
+      } catch {
+        // Best-effort cleanup
+      }
+      return NextResponse.json({ error: attError }, { status: 500 });
+    }
+
+    attachmentRecords = attachments;
+  }
+
+  return NextResponse.json(
+    { ...idea, attachments: attachmentRecords ?? [] },
+    { status: 201 }
+  );
 }
