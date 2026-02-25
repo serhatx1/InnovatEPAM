@@ -6,11 +6,14 @@ import Link from "next/link";
 import {
   IDEA_CATEGORIES,
   MAX_FILE_SIZE,
+  MAX_TOTAL_ATTACHMENT_SIZE,
+  MAX_ATTACHMENTS,
   ALLOWED_FILE_TYPES,
   CATEGORY_FIELD_DEFINITIONS,
   type IdeaCategory,
 } from "@/lib/constants";
 import { validateCategoryFieldsForCategory } from "@/lib/validation/category-fields";
+import { validateFile, validateFiles } from "@/lib/validation/idea";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,8 +21,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-const ACCEPT_EXTENSIONS = ".pdf,.png,.jpg,.jpeg,.docx";
+import { FileUploadZone } from "@/components/ui/file-upload-zone";
+import { UploadProgress } from "@/components/ui/upload-progress";
 
 export default function NewIdeaPage() {
   const router = useRouter();
@@ -29,6 +32,8 @@ export default function NewIdeaPage() {
   const [selectedCategory, setSelectedCategory] = useState<IdeaCategory | "">("");
   const [categoryFieldValues, setCategoryFieldValues] = useState<Record<string, string>>({});
   const [categoryFieldErrors, setCategoryFieldErrors] = useState<Record<string, string[]>>({});
+  const [files, setFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const activeCategoryFields = selectedCategory
     ? CATEGORY_FIELD_DEFINITIONS[selectedCategory] ?? []
@@ -57,13 +62,48 @@ export default function NewIdeaPage() {
     });
   }
 
+  function handleFilesAdded(newFiles: File[]) {
+    setFileError(null);
+    const combined = [...files, ...newFiles];
+
+    // Client-side validation
+    const validation = validateFiles(combined);
+    if (validation) {
+      if (validation.countError) {
+        setFileError(validation.countError);
+        return; // Don't add files if count exceeded
+      }
+      if (validation.fileErrors && validation.fileErrors.length > 0) {
+        setFileError(validation.fileErrors[0].error);
+        // Add only the valid files
+        setFiles(validation.valid);
+        return;
+      }
+      if (validation.totalSizeError) {
+        setFileError(validation.totalSizeError);
+        return;
+      }
+    }
+
+    setFiles(combined);
+  }
+
+  function handleFileRemoved(index: number) {
+    setFileError(null);
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCategoryFieldErrors({});
+    setFileError(null);
     setLoading(true);
 
-    const formData = new FormData(event.currentTarget);
-    const category = ((formData.get("category") as string) || selectedCategory).trim();
+    const formData = new FormData();
+    formData.set("title", title);
+    formData.set("description", description);
+    const category = selectedCategory;
+    formData.set("category", category);
 
     const dynamicValidation = validateCategoryFieldsForCategory(category, categoryFieldValues);
     if (!dynamicValidation.success) {
@@ -74,19 +114,9 @@ export default function NewIdeaPage() {
 
     formData.set("category_fields", JSON.stringify(dynamicValidation.data));
 
-    // Client-side file validation (EC3, EC4)
-    const file = formData.get("file") as File | null;
-    if (file && file.size > 0) {
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error("File must not exceed 5 MB");
-        setLoading(false);
-        return;
-      }
-      if (!ALLOWED_FILE_TYPES.includes(file.type as (typeof ALLOWED_FILE_TYPES)[number])) {
-        toast.error("Accepted formats: PDF, PNG, JPG, DOCX");
-        setLoading(false);
-        return;
-      }
+    // Append all files
+    for (const file of files) {
+      formData.append("files", file);
     }
 
     try {
@@ -251,12 +281,24 @@ export default function NewIdeaPage() {
 
             <Separator />
 
-            {/* File attachment */}
+            {/* File attachments (multi-file) */}
             <div className="grid gap-2">
-              <Label htmlFor="file">Attachment (optional)</Label>
-              <Input id="file" name="file" type="file" accept={ACCEPT_EXTENSIONS} />
-              <p className="text-xs text-muted-foreground">Max 5 MB — PDF, PNG, JPG, DOCX</p>
+              <Label>Attachments (optional)</Label>
+              <FileUploadZone
+                files={files}
+                onFilesAdded={handleFilesAdded}
+                onFileRemoved={handleFileRemoved}
+                maxFiles={MAX_ATTACHMENTS}
+                maxTotalSize={MAX_TOTAL_ATTACHMENT_SIZE}
+                acceptedTypes={[...ALLOWED_FILE_TYPES]}
+                error={fileError}
+                disabled={loading}
+              />
             </div>
+
+            {loading && files.length > 0 && (
+              <UploadProgress current={0} total={files.length} />
+            )}
 
             <Button type="submit" disabled={loading} className="w-full md:w-auto">
               {loading ? "Submitting..." : "Submit Idea"}

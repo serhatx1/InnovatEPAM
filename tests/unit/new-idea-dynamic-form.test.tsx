@@ -223,17 +223,18 @@ describe("NewIdeaPage — client-side file validation", () => {
     } as Response);
   });
 
-  it("renders file input with correct accept attribute", () => {
+  it("renders multi-file upload zone with accept attribute", () => {
     render(<NewIdeaPage />);
-    const fileInput = screen.getByLabelText(/Attachment/) as HTMLInputElement;
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     expect(fileInput).toBeInTheDocument();
-    expect(fileInput.getAttribute("accept")).toBe(".pdf,.png,.jpg,.jpeg,.docx");
+    expect(fileInput.getAttribute("accept")).toContain("application/pdf");
+    expect(fileInput.getAttribute("multiple")).toBe("");
   });
 
-  it("shows file size limit guidance text", () => {
+  it("shows upload zone guidance text", () => {
     render(<NewIdeaPage />);
-    expect(screen.getByText(/Max 5 MB/)).toBeInTheDocument();
-    expect(screen.getByText(/PDF, PNG, JPG, DOCX/)).toBeInTheDocument();
+    expect(screen.getByText(/drag.*drop/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /choose files/i })).toBeInTheDocument();
   });
 });
 

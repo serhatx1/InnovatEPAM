@@ -170,17 +170,17 @@
 
 ### T12: Update idea submission form for multi-file
 
-- [ ] Write tests for form renders with `FileUploadZone` component in tests/unit/new-idea-multifile.test.tsx
-- [ ] Write tests for submitting with multiple files sends all files in FormData
-- [ ] Write tests for submitting without files succeeds (optional)
-- [ ] Write tests for progress indicator appears during submission
-- [ ] Write tests for validation errors display for invalid files
-- [ ] Write tests for successful submission redirects to idea detail
-- [ ] Replace single file input with `FileUploadZone` + `AttachmentListForm` in src/app/ideas/new/page.tsx
-- [ ] Update FormData construction to append multiple files as `files`
-- [ ] Add `UploadProgress` during submit
-- [ ] Handle API response (success → redirect, error → display)
-- [ ] Verify form tests pass
+- [X] Write tests for form renders with `FileUploadZone` component in tests/unit/new-idea-multifile.test.tsx
+- [X] Write tests for submitting with multiple files sends all files in FormData
+- [X] Write tests for submitting without files succeeds (optional)
+- [X] Write tests for progress indicator appears during submission
+- [X] Write tests for validation errors display for invalid files
+- [X] Write tests for successful submission redirects to idea detail
+- [X] Replace single file input with `FileUploadZone` + `AttachmentListForm` in src/app/ideas/new/page.tsx
+- [X] Update FormData construction to append multiple files as `files`
+- [X] Add `UploadProgress` during submit
+- [X] Handle API response (success → redirect, error → display)
+- [X] Verify form tests pass
 
 ### T13: Update idea detail page for multi-attachment display
 
