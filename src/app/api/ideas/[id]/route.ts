@@ -45,10 +45,10 @@ export async function GET(
   if (records.length > 0) {
     // New model: generate signed download URL for each record
     attachments = await Promise.all(
-      records.map(async (att: Record<string, unknown>) => {
+      records.map(async (att) => {
         const downloadUrl = await getAttachmentDownloadUrl(
-          att.storage_path as string,
-          att.original_file_name as string
+          att.storage_path,
+          att.original_file_name
         );
         return { ...att, download_url: downloadUrl };
       })
