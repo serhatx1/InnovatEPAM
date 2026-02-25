@@ -36,6 +36,19 @@ export default function RegisterPage() {
       return;
     }
 
+    const isLikelyDuplicateEmail =
+      !data.session &&
+      !!data.user &&
+      Array.isArray(data.user.identities) &&
+      data.user.identities.length === 0;
+
+    if (isLikelyDuplicateEmail) {
+      toast.error(
+        `An account already exists for ${email}. Please sign in with this email instead.`
+      );
+      return;
+    }
+
     if (data.session) {
       toast.success("Registration successful. Redirecting...");
       router.push("/ideas");
