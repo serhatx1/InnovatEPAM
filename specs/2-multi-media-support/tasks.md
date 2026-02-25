@@ -111,16 +111,16 @@
 
 ### T8: Update GET /api/ideas/[id] for multi-attachment response
 
-- [ ] Write tests for GET returns idea with `attachments[]` array (new model) in tests/unit/api-idea-detail.test.ts
-- [ ] Write tests for GET returns idea with `signed_attachment_url` for legacy ideas (backward compat)
-- [ ] Write tests that each attachment in array has `download_url` (signed) and `original_file_name`
-- [ ] Write tests for attachments ordered by `upload_order`
-- [ ] Write tests that legacy idea with `attachment_url` renders as single attachment in response
-- [ ] Fetch `getAttachmentsByIdeaId()` after fetching idea in src/app/api/ideas/[id]/route.ts
-- [ ] Generate signed download URLs for each attachment (with original name)
-- [ ] Handle legacy `attachment_url` fallback: if no `idea_attachment` records, include legacy as first attachment
-- [ ] Return merged response
-- [ ] Verify all detail tests pass for both new and legacy ideas
+- [X] Write tests for GET returns idea with `attachments[]` array (new model) in tests/unit/api-idea-detail.test.ts
+- [X] Write tests for GET returns idea with `signed_attachment_url` for legacy ideas (backward compat)
+- [X] Write tests that each attachment in array has `download_url` (signed) and `original_file_name`
+- [X] Write tests for attachments ordered by `upload_order`
+- [X] Write tests that legacy idea with `attachment_url` renders as single attachment in response
+- [X] Fetch `getAttachmentsByIdeaId()` after fetching idea in src/app/api/ideas/[id]/route.ts
+- [X] Generate signed download URLs for each attachment (with original name)
+- [X] Handle legacy `attachment_url` fallback: if no `idea_attachment` records, include legacy as first attachment
+- [X] Return merged response
+- [X] Verify all detail tests pass for both new and legacy ideas
 
 ---
 
