@@ -28,3 +28,4 @@ Thumbs.db
 
 # Supabase local artifacts
 supabase/.temp/
+tsconfig.tsbuildinfo
