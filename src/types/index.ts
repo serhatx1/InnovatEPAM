@@ -37,3 +37,31 @@ export interface Idea {
   created_at: string;
   updated_at: string;
 }
+
+/** Metadata for a single file attachment stored in idea_attachment table */
+export interface IdeaAttachment {
+  id: string;
+  idea_id: string;
+  original_file_name: string;
+  file_size: number;
+  mime_type: string;
+  storage_path: string;
+  upload_order: number;
+  created_at: string;
+}
+
+/** Attachment as returned in API responses (signed download URL, no storage_path) */
+export interface AttachmentResponse {
+  id: string | null;
+  original_file_name: string;
+  file_size: number | null;
+  mime_type: string;
+  upload_order: number;
+  download_url: string;
+}
+
+/** Idea with full attachment details for detail/create responses */
+export interface IdeaWithAttachments extends Idea {
+  signed_attachment_url: string | null;
+  attachments: AttachmentResponse[];
+}
