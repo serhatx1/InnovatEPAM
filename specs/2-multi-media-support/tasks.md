@@ -200,11 +200,11 @@
 
 ### T14: Expand test coverage
 
-- [ ] Verify all existing tests still pass after changes
-- [ ] Add integration test for full flow: upload 5 files → verify attachment records → download each → verify integrity in tests/integration/
-- [ ] Add integration test for atomic failure: mock one upload failure → verify no records or files persisted
-- [ ] Add tests for backward compatibility: legacy idea (has `attachment_url`, no `idea_attachment` records) renders correctly
-- [ ] Verify ≥ 80% coverage for `src/lib/`
+- [X] Verify all existing tests still pass after changes
+- [X] Add integration test for full flow: upload 5 files → verify attachment records → download each → verify integrity in tests/integration/
+- [X] Add integration test for atomic failure: mock one upload failure → verify no records or files persisted
+- [X] Add tests for backward compatibility: legacy idea (has `attachment_url`, no `idea_attachment` records) renders correctly
+- [X] Verify ≥ 80% coverage for `src/lib/`
 
 ---
 
