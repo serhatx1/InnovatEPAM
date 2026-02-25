@@ -109,3 +109,25 @@
 - [X] Write `tests/unit/storage.test.ts` (mocked — uploadIdeaAttachment, getAttachmentUrl)
 - [X] Write `tests/unit/middleware.test.ts` (route protection — public routes pass, protected redirect)
 - [X] Verify all tests pass and coverage ≥ 80% for src/lib/
+
+---
+
+## Phase 6: API Route & Extended Testing Coverage
+
+### T10: Add behavioral tests for GET/POST /api/ideas route
+
+- [X] Write `tests/unit/api-ideas-route.test.ts` (mocked — auth 401, GET list, GET DB error 500, POST validation 400, POST malformed JSON, POST file validation, POST upload failure 500, POST DB error 500, POST success 201 with/without file)
+
+### T11: Add behavioral tests for GET /api/ideas/[id] route
+
+- [X] Write `tests/unit/api-idea-detail.test.ts` (mocked — auth 401, not found 404, DB error 404, success without attachment, success with signed URL, attachment URL failure)
+
+### T12: Add behavioral tests for PATCH /api/admin/ideas/[id]/status route
+
+- [X] Write `tests/unit/api-admin-status.test.ts` (mocked — auth 401, role 403, invalid status 400, submitted target 400, reject without comment 400, reject short comment 400, idea not found 404, invalid transition 400, success accept/review/reject, DB error 500)
+
+### T13: Add CATEGORY_FIELD_DEFINITIONS tests and expand existing gaps
+
+- [X] Extend `tests/unit/constants.test.ts` with CATEGORY_FIELD_DEFINITIONS coverage (all 5 categories, field properties, select options, number ranges, uniqueness)
+- [X] Write `tests/unit/validation-all-categories.test.ts` (all 5 categories validation: Process Improvement, Customer Experience, Employee Engagement + edge cases: null/array/undefined input, stale key stripping, numeric conversion)
+- [X] Add createIdea and updateIdeaStatus error cases to `tests/unit/queries-ideas.test.ts`
