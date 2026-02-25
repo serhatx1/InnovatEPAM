@@ -34,6 +34,7 @@ List all ideas for any authenticated user.
     "title": "string",
     "description": "string",
     "category": "Process Improvement | Technology Innovation | Cost Reduction | Customer Experience | Employee Engagement",
+    "category_fields": {},
     "status": "submitted | under_review | accepted | rejected",
     "attachment_url": "string | null",
     "evaluator_comment": "string | null",
@@ -60,7 +61,7 @@ Create a new idea with optional file attachment.
 | title | string | Yes | 5–100 characters |
 | description | string | Yes | 20–1000 characters |
 | category | string | Yes | One of `IDEA_CATEGORIES` |
-| file | File | No | Max 5 MB; PDF, PNG, JPG, or DOCX |
+| file | File | No | Max 10 MB; PDF, PNG, JPG, JPEG, GIF, WEBP, DOCX, XLSX, PPTX, or CSV |
 
 ### Response
 
@@ -68,8 +69,8 @@ Create a new idea with optional file attachment.
 |--------|------|-----------|
 | 201 | `Idea` | Created successfully |
 | 400 | `{ "error": "Validation failed", "details": {...} }` | Invalid input fields |
-| 400 | `{ "error": "File must not exceed 5 MB" }` | File too large |
-| 400 | `{ "error": "Accepted formats: PDF, PNG, JPG, DOCX" }` | Invalid file type |
+| 400 | `{ "error": "File must not exceed 10 MB" }` | File too large |
+| 400 | `{ "error": "Accepted formats: PDF, PNG, JPG, JPEG, GIF, WEBP, DOCX, XLSX, PPTX, CSV" }` | Invalid file type |
 | 401 | `{ "error": "Unauthorized" }` | No valid session |
 | 500 | `{ "error": string }` | Upload or database error |
 
@@ -102,12 +103,23 @@ Get a single idea by ID. Any authenticated user can view any idea.
   "title": "string",
   "description": "string",
   "category": "string",
+  "category_fields": {},
   "status": "string",
   "attachment_url": "string | null",
   "evaluator_comment": "string | null",
   "created_at": "ISO 8601",
   "updated_at": "ISO 8601",
-  "signed_attachment_url": "string | null"
+  "signed_attachment_url": "string | null",
+  "attachments": [
+    {
+      "id": "string | null",
+      "original_file_name": "string",
+      "file_size": "number | null",
+      "mime_type": "string",
+      "upload_order": "number",
+      "download_url": "string"
+    }
+  ]
 }
 ```
 
@@ -177,17 +189,47 @@ Update idea status (admin only). Enforces valid status transitions and condition
 
 type IdeaStatus = "submitted" | "under_review" | "accepted" | "rejected";
 
+type CategoryFieldType = "text" | "number" | "select" | "textarea";
+type CategoryFieldValue = string | number;
+type CategoryFieldValues = Record<string, CategoryFieldValue>;
+
 interface Idea {
   id: string;
   user_id: string;
   title: string;
   description: string;
   category: string;
+  category_fields: CategoryFieldValues;   // Phase 2: dynamic category data
   status: IdeaStatus;
-  attachment_url: string | null;
+  attachment_url: string | null;           // Legacy single-attachment (read-only for old ideas)
   evaluator_comment: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface IdeaAttachment {                  // Phase 3: multi-file attachments
+  id: string;
+  idea_id: string;
+  original_file_name: string;
+  file_size: number;
+  mime_type: string;
+  storage_path: string;
+  upload_order: number;
+  created_at: string;
+}
+
+interface AttachmentResponse {
+  id: string | null;
+  original_file_name: string;
+  file_size: number | null;
+  mime_type: string;
+  upload_order: number;
+  download_url: string;
+}
+
+interface IdeaWithAttachments extends Idea {
+  signed_attachment_url: string | null;
+  attachments: AttachmentResponse[];
 }
 
 interface UserProfile {

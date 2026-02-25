@@ -1,14 +1,15 @@
 <!--
 Sync Impact Report
 ===================
-Version change: 1.0.0 → 1.0.1
+Version change: 1.0.1 → 1.0.2
 Updated sections:
-  - Guiding Principles (Test-First wording)
-  - Constraints (runtime + testing stack)
-  - Testing Principles (current test scope)
+  - Guiding Principles § Secure by Default (file upload constraints)
 Reason:
-  - Align constitution with actual repository setup
-    (Vitest-only test stack; no Playwright/e2e directory yet)
+  - Align constitution with implemented multi-media support:
+    file limit raised to 10 MB, multi-file uploads (max 5),
+    expanded file types, dual client+server validation,
+    atomic upload-or-rollback strategy.
+  - Reference ADR-005 and ADR-006 for detailed rationale.
 Templates requiring updates:
   - .github/agents/*.agent.md ✅ no changes needed
   - .github/prompts/*.prompt.md ✅ no changes needed
@@ -19,8 +20,8 @@ Follow-up TODOs:
 # InnovatEPAM Portal Constitution
 
 **Created**: 2026-02-24
-**Last Amended**: 2026-02-24
-**Version**: 1.0.1
+**Last Amended**: 2026-02-25
+**Version**: 1.0.2
 
 ## Purpose
 
@@ -49,7 +50,11 @@ that govern all development decisions.
    server boundaries using Zod schemas. Role-based authorization
    MUST be enforced via Supabase RLS policies AND server-side
    checks. Admin endpoints MUST verify role before any mutation.
-   File uploads MUST be restricted by type and size.
+   File uploads MUST be validated on both client (UX feedback)
+   and server (security boundary): max 10 MB per file, max 5
+   files per idea, max 25 MB total, restricted MIME types.
+   Multi-file submissions MUST be atomic — all files succeed or
+   the entire submission is rolled back (see ADR-006).
 
 4. **Type Safety**: TypeScript strict mode is enabled everywhere.
    Shared types define API contracts. Zod schemas serve as the

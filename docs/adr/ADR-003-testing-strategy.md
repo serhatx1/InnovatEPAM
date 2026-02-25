@@ -28,6 +28,16 @@ The project guide requires passing tests, Testing Principles in the constitution
 - Current repository already has comprehensive Vitest unit/integration coverage and does not include Playwright config yet.
 - E2E coverage can be introduced incrementally without blocking MVP completion.
 
+## E2E Adoption Trigger
+
+Add Playwright E2E tests when **any** of the following conditions is met:
+
+1. **Multi-step user flows** span 3+ pages (e.g., submission → review → status change) and cannot be adequately covered by integration tests alone.
+2. **Visual regressions** are reported that unit/integration tests do not catch (e.g., layout breakage across viewports).
+3. **CI false-greens** — tests pass but production users report broken flows, indicating a gap between test coverage and real-browser behaviour.
+
+Until a trigger fires, the current Vitest + RTL stack provides sufficient confidence.
+
 ## Consequences
 
 - Test files live under `tests/unit/` and `tests/integration/`.
