@@ -143,6 +143,30 @@ describe("createIdea", () => {
     expect(data).toEqual(newIdea);
     expect(chainable.insert).toHaveBeenCalled();
   });
+
+  it("returns error message on database failure", async () => {
+    const chainable = {
+      insert: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: "Unique constraint violation" },
+      }),
+    };
+
+    const supabase = { from: vi.fn().mockReturnValue(chainable) } as any;
+
+    const { data, error } = await createIdea(supabase, {
+      user_id: "user-1",
+      title: "Duplicate Idea",
+      description: "This should fail",
+      category: "Process Improvement",
+      attachment_url: null,
+    });
+
+    expect(data).toBeNull();
+    expect(error).toBe("Unique constraint violation");
+  });
 });
 
 describe("updateIdeaStatus", () => {
@@ -170,6 +194,27 @@ describe("updateIdeaStatus", () => {
     expect(error).toBeNull();
     expect(data!.status).toBe("accepted");
     expect(data!.evaluator_comment).toBe("Looks good!");
+  });
+
+  it("returns error message on database failure", async () => {
+    const chainable = {
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: "Row not found" },
+      }),
+    };
+
+    const supabase = { from: vi.fn().mockReturnValue(chainable) } as any;
+
+    const { data, error } = await updateIdeaStatus(supabase, "nonexistent", {
+      status: "accepted",
+    });
+
+    expect(data).toBeNull();
+    expect(error).toBe("Row not found");
   });
 });
 
