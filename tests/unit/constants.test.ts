@@ -2,7 +2,11 @@ import { describe, it, expect } from "vitest";
 import {
   IDEA_CATEGORIES,
   MAX_FILE_SIZE,
+  MAX_TOTAL_ATTACHMENT_SIZE,
+  MAX_ATTACHMENTS,
   ALLOWED_FILE_TYPES,
+  IMAGE_MIME_TYPES,
+  FILE_TYPE_LABELS,
   VALID_TRANSITIONS,
   CATEGORY_FIELD_DEFINITIONS,
 } from "@/lib/constants";
@@ -22,8 +26,20 @@ describe("IDEA_CATEGORIES", () => {
 });
 
 describe("MAX_FILE_SIZE", () => {
-  it("equals 5 MB in bytes", () => {
-    expect(MAX_FILE_SIZE).toBe(5 * 1024 * 1024);
+  it("equals 10 MB in bytes", () => {
+    expect(MAX_FILE_SIZE).toBe(10 * 1024 * 1024);
+  });
+});
+
+describe("MAX_TOTAL_ATTACHMENT_SIZE", () => {
+  it("equals 25 MB in bytes", () => {
+    expect(MAX_TOTAL_ATTACHMENT_SIZE).toBe(25 * 1024 * 1024);
+  });
+});
+
+describe("MAX_ATTACHMENTS", () => {
+  it("equals 5", () => {
+    expect(MAX_ATTACHMENTS).toBe(5);
   });
 });
 
@@ -46,8 +62,70 @@ describe("ALLOWED_FILE_TYPES", () => {
     );
   });
 
-  it("contains exactly 4 types", () => {
-    expect(ALLOWED_FILE_TYPES).toHaveLength(4);
+  it("allows GIF", () => {
+    expect(ALLOWED_FILE_TYPES).toContain("image/gif");
+  });
+
+  it("allows WEBP", () => {
+    expect(ALLOWED_FILE_TYPES).toContain("image/webp");
+  });
+
+  it("allows XLSX", () => {
+    expect(ALLOWED_FILE_TYPES).toContain(
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+  });
+
+  it("allows PPTX", () => {
+    expect(ALLOWED_FILE_TYPES).toContain(
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    );
+  });
+
+  it("allows CSV", () => {
+    expect(ALLOWED_FILE_TYPES).toContain("text/csv");
+  });
+
+  it("contains exactly 9 MIME types", () => {
+    expect(ALLOWED_FILE_TYPES).toHaveLength(9);
+  });
+});
+
+describe("IMAGE_MIME_TYPES", () => {
+  it("contains exactly 4 image types", () => {
+    expect(IMAGE_MIME_TYPES).toHaveLength(4);
+  });
+
+  it("includes png, jpeg, gif, webp", () => {
+    expect(IMAGE_MIME_TYPES).toContain("image/png");
+    expect(IMAGE_MIME_TYPES).toContain("image/jpeg");
+    expect(IMAGE_MIME_TYPES).toContain("image/gif");
+    expect(IMAGE_MIME_TYPES).toContain("image/webp");
+  });
+
+  it("is a subset of ALLOWED_FILE_TYPES", () => {
+    for (const mime of IMAGE_MIME_TYPES) {
+      expect(ALLOWED_FILE_TYPES).toContain(mime);
+    }
+  });
+});
+
+describe("FILE_TYPE_LABELS", () => {
+  it("has a human-readable label for every ALLOWED_FILE_TYPES entry", () => {
+    for (const mime of ALLOWED_FILE_TYPES) {
+      expect(FILE_TYPE_LABELS[mime]).toBeDefined();
+      expect(typeof FILE_TYPE_LABELS[mime]).toBe("string");
+      expect(FILE_TYPE_LABELS[mime].length).toBeGreaterThan(0);
+    }
+  });
+
+  it("maps common types to expected labels", () => {
+    expect(FILE_TYPE_LABELS["application/pdf"]).toBe("PDF");
+    expect(FILE_TYPE_LABELS["image/png"]).toBe("PNG");
+    expect(FILE_TYPE_LABELS["image/jpeg"]).toBe("JPG");
+    expect(FILE_TYPE_LABELS["image/gif"]).toBe("GIF");
+    expect(FILE_TYPE_LABELS["image/webp"]).toBe("WEBP");
+    expect(FILE_TYPE_LABELS["text/csv"]).toBe("CSV");
   });
 });
 

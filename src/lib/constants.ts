@@ -15,16 +15,48 @@ export const IDEA_CATEGORIES = [
 
 export type IdeaCategory = (typeof IDEA_CATEGORIES)[number];
 
-/** Maximum file size in bytes (5 MB) */
-export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5,242,880 bytes
+/** Maximum file size in bytes (10 MB) */
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10,485,760 bytes
 
-/** Allowed MIME types for idea attachments */
+/** Maximum total attachment size in bytes (25 MB) */
+export const MAX_TOTAL_ATTACHMENT_SIZE = 25 * 1024 * 1024; // 26,214,400 bytes
+
+/** Maximum number of file attachments per idea */
+export const MAX_ATTACHMENTS = 5;
+
+/** Allowed MIME types for idea attachments (9 unique MIME types covering 10 extensions) */
 export const ALLOWED_FILE_TYPES = [
   "application/pdf",
   "image/png",
   "image/jpeg",
+  "image/gif",
+  "image/webp",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/csv",
 ] as const;
+
+/** Image MIME types (for thumbnail detection on detail page) */
+export const IMAGE_MIME_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+] as const;
+
+/** Human-readable labels for file types (for UI display and error messages) */
+export const FILE_TYPE_LABELS: Record<string, string> = {
+  "application/pdf": "PDF",
+  "image/png": "PNG",
+  "image/jpeg": "JPG",
+  "image/gif": "GIF",
+  "image/webp": "WEBP",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": "PPTX",
+  "text/csv": "CSV",
+};
 
 /**
  * Valid status transitions for idea lifecycle.
