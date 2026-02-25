@@ -128,41 +128,41 @@
 
 ### T9: Create multi-file upload component
 
-- [ ] Write tests for `FileUploadZone` renders drag-and-drop area with file picker button in tests/unit/file-upload-zone.test.tsx
-- [ ] Write tests for selecting files adds them to attachment list
-- [ ] Write tests for selecting a 6th file shows max count error
-- [ ] Write tests for selecting oversized/invalid/empty file shows inline error, keeps valid files
-- [ ] Write tests for remove button removes specific file from list
-- [ ] Write tests for running total displays current/max combined size
-- [ ] Write tests for drag-and-drop events add files correctly
-- [ ] Implement `FileUploadZone` with HTML5 drag-and-drop + `<input type="file" multiple>` in src/components/ui/file-upload-zone.tsx
-- [ ] Implement `AttachmentListForm` with file metadata, remove button, size total bar in src/components/ui/attachment-list-form.tsx
-- [ ] Use shadcn/ui Button, Card, Badge components
-- [ ] Add file type icons via mapped labels
-- [ ] Verify component tests pass
+- [X] Write tests for `FileUploadZone` renders drag-and-drop area with file picker button in tests/unit/file-upload-zone.test.tsx
+- [X] Write tests for selecting files adds them to attachment list
+- [X] Write tests for selecting a 6th file shows max count error
+- [X] Write tests for selecting oversized/invalid/empty file shows inline error, keeps valid files
+- [X] Write tests for remove button removes specific file from list
+- [X] Write tests for running total displays current/max combined size
+- [X] Write tests for drag-and-drop events add files correctly
+- [X] Implement `FileUploadZone` with HTML5 drag-and-drop + `<input type="file" multiple>` in src/components/ui/file-upload-zone.tsx
+- [X] Implement `AttachmentListForm` with file metadata, remove button, size total bar in src/components/ui/attachment-list-form.tsx
+- [X] Use shadcn/ui Button, Card, Badge components
+- [X] Add file type icons via mapped labels
+- [X] Verify component tests pass
 
 ### T10: Create attachment list detail component with thumbnails + lightbox
 
-- [ ] Write tests for `AttachmentListDetail` renders list with name, type icon, size, download link in tests/unit/attachment-list-detail.test.tsx
-- [ ] Write tests for image attachments show ~120px thumbnail preview
-- [ ] Write tests for clicking thumbnail opens `ImageLightbox` modal with larger image
-- [ ] Write tests for non-image attachments show file type icon (no thumbnail)
-- [ ] Write tests for download link triggers file download with original name
-- [ ] Write tests for legacy single attachment renders in same list format
-- [ ] Write tests for attachments ordered by upload sequence
-- [ ] Implement `AttachmentListDetail` in src/components/ui/attachment-list-detail.tsx
-- [ ] Implement `ImageLightbox` using shadcn Dialog in src/components/ui/image-lightbox.tsx
-- [ ] Thumbnails: `<img>` with `max-width: 120px` + `object-fit: contain`
-- [ ] Verify component tests pass
+- [X] Write tests for `AttachmentListDetail` renders list with name, type icon, size, download link in tests/unit/attachment-list-detail.test.tsx
+- [X] Write tests for image attachments show ~120px thumbnail preview
+- [X] Write tests for clicking thumbnail opens `ImageLightbox` modal with larger image
+- [X] Write tests for non-image attachments show file type icon (no thumbnail)
+- [X] Write tests for download link triggers file download with original name
+- [X] Write tests for legacy single attachment renders in same list format
+- [X] Write tests for attachments ordered by upload sequence
+- [X] Implement `AttachmentListDetail` in src/components/ui/attachment-list-detail.tsx
+- [X] Implement `ImageLightbox` using shadcn Dialog in src/components/ui/image-lightbox.tsx
+- [X] Thumbnails: `<img>` with `max-width: 120px` + `object-fit: contain`
+- [X] Verify component tests pass
 
 ### T11: Create upload progress indicator component
 
-- [ ] Write tests for `UploadProgress` shows "Uploading X of Y files..." text in tests/unit/upload-progress.test.tsx
-- [ ] Write tests for submit button is disabled during upload
-- [ ] Write tests for progress updates as files complete
-- [ ] Implement `UploadProgress` component in src/components/ui/upload-progress.tsx
-- [ ] Uses shadcn Button disabled state
-- [ ] Verify component tests pass
+- [X] Write tests for `UploadProgress` shows "Uploading X of Y files..." text in tests/unit/upload-progress.test.tsx
+- [X] Write tests for submit button is disabled during upload
+- [X] Write tests for progress updates as files complete
+- [X] Implement `UploadProgress` component in src/components/ui/upload-progress.tsx
+- [X] Uses shadcn Button disabled state
+- [X] Verify component tests pass
 
 ---
 
