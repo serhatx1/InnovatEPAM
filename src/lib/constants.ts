@@ -63,11 +63,36 @@ export const FILE_TYPE_LABELS: Record<string, string> = {
  * Terminal states (accepted, rejected) have no outgoing transitions.
  */
 export const VALID_TRANSITIONS: Record<string, string[]> = {
+  draft: ["submitted"],
   submitted: ["under_review", "accepted", "rejected"],
   under_review: ["accepted", "rejected"],
   accepted: [],
   rejected: [],
 };
+
+/** Minimum number of stages allowed in a review workflow */
+export const REVIEW_WORKFLOW_MIN_STAGES = 3;
+
+/** Maximum number of stages allowed in a review workflow */
+export const REVIEW_WORKFLOW_MAX_STAGES = 7;
+
+/** Allowed transition actions for multi-stage review requests */
+export const REVIEW_TRANSITION_ACTIONS = [
+  "advance",
+  "return",
+  "hold",
+  "terminal_accept",
+  "terminal_reject",
+] as const;
+
+/** Terminal outcomes after final-stage decisions */
+export const REVIEW_TERMINAL_OUTCOMES = ["accepted", "rejected"] as const;
+
+/** Auto-save debounce delay in milliseconds (3 seconds) */
+export const AUTOSAVE_DEBOUNCE_MS = 3000;
+
+/** Prefix for temporary staging file uploads before draft creation */
+export const DRAFT_STAGING_PREFIX = "staging/";
 
 export const CATEGORY_FIELD_DEFINITIONS: Record<IdeaCategory, CategoryFieldDefinition[]> = {
   "Process Improvement": [
