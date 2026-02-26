@@ -3,12 +3,18 @@ import { createClient } from "@/lib/supabase/server";
 import { ideaSchema, validateFiles } from "@/lib/validation/idea";
 import { validateCategoryFieldsForCategory } from "@/lib/validation/category-fields";
 import { uploadMultipleAttachments, deleteAttachments } from "@/lib/supabase/storage";
-import { listIdeas, createIdea, createAttachments, bindSubmittedIdeaToWorkflow } from "@/lib/queries";
+import { listIdeas, createIdea, createAttachments, bindSubmittedIdeaToWorkflow, getUserRole } from "@/lib/queries";
+import { getBlindReviewEnabled } from "@/lib/queries/portal-settings";
+import { getScoreAggregatesForIdeas } from "@/lib/queries/idea-scores";
+import { anonymizeIdeaList } from "@/lib/review/blind-review";
+import type { ReviewTerminalOutcome } from "@/types";
 
 /**
  * GET /api/ideas — List all ideas for any authenticated user (FR-17).
+ * Applies blind review anonymization when enabled (Feature 7).
+ * Supports ?sortBy=avgScore&sortDir=desc|asc for score-based sorting (Feature 8).
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   const supabase = await createClient();
 
   const {
@@ -25,7 +31,60 @@ export async function GET() {
     return NextResponse.json({ error }, { status: 500 });
   }
 
-  return NextResponse.json(ideas);
+  // ── Score aggregates ───────────────────────────────────
+  const ideaIds = ideas.map((i) => i.id);
+  const { data: scoreMap } = await getScoreAggregatesForIdeas(supabase, ideaIds);
+
+  // Attach avgScore and scoreCount to each idea
+  let enriched = ideas.map((idea) => {
+    const agg = scoreMap.get(idea.id);
+    return {
+      ...idea,
+      avgScore: agg?.avgScore ?? null,
+      scoreCount: agg?.scoreCount ?? 0,
+    };
+  });
+
+  // ── Score-based sorting ────────────────────────────────
+  const { searchParams } = new URL(request.url);
+  const sortBy = searchParams.get("sortBy");
+  const sortDir = searchParams.get("sortDir") ?? "desc";
+
+  if (sortBy === "avgScore") {
+    enriched = enriched.sort((a, b) => {
+      // Unscored ideas (null avgScore) sort to bottom always
+      if (a.avgScore === null && b.avgScore === null) return 0;
+      if (a.avgScore === null) return 1;
+      if (b.avgScore === null) return -1;
+      return sortDir === "asc" ? a.avgScore - b.avgScore : b.avgScore - a.avgScore;
+    });
+  }
+
+  // ── Blind review anonymization ─────────────────────────
+  const { enabled: blindReviewEnabled } = await getBlindReviewEnabled(supabase);
+
+  if (blindReviewEnabled) {
+    const viewerRole = (await getUserRole(supabase, user.id)) ?? "submitter";
+
+    // Fetch terminal outcomes for listed ideas
+    const terminalOutcomes = new Map<string, ReviewTerminalOutcome | null>();
+
+    if (ideaIds.length > 0) {
+      const { data: stageStates } = await supabase
+        .from("idea_stage_state")
+        .select("idea_id, terminal_outcome")
+        .in("idea_id", ideaIds);
+
+      for (const state of stageStates ?? []) {
+        terminalOutcomes.set(state.idea_id, state.terminal_outcome);
+      }
+    }
+
+    const anonymized = anonymizeIdeaList(enriched as any, viewerRole, user.id, true, terminalOutcomes);
+    return NextResponse.json(anonymized);
+  }
+
+  return NextResponse.json(enriched);
 }
 
 /**

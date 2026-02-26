@@ -7,12 +7,24 @@ vi.mock("@/lib/supabase/server", () => ({
     auth: {
       getUser: vi.fn(async () => ({ data: { user: { id: "user-1" } } })),
     },
+    from: vi.fn(() => ({ select: vi.fn(() => ({ in: vi.fn(async () => ({ data: [], error: null })) })) })),
   })),
 }));
 
 vi.mock("@/lib/queries", () => ({
   listIdeas: vi.fn(),
   createIdea: (...args: unknown[]) => mockCreateIdea(...args),
+  createAttachments: vi.fn(),
+  bindSubmittedIdeaToWorkflow: vi.fn(async () => ({ data: null, error: null })),
+  getUserRole: vi.fn(async () => "submitter"),
+}));
+
+vi.mock("@/lib/queries/portal-settings", () => ({
+  getBlindReviewEnabled: vi.fn(async () => ({ enabled: false, updatedBy: null, updatedAt: null })),
+}));
+
+vi.mock("@/lib/review/blind-review", () => ({
+  anonymizeIdeaList: vi.fn((ideas: unknown[]) => ideas),
 }));
 
 vi.mock("@/lib/supabase/storage", () => ({

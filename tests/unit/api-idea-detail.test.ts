@@ -17,11 +17,29 @@ vi.mock("@/lib/supabase/server", () => ({
 vi.mock("@/lib/queries", () => ({
   getIdeaById: (...args: unknown[]) => mockGetIdeaById(...args),
   getAttachmentsByIdeaId: (...args: unknown[]) => mockGetAttachmentsByIdeaId(...args),
+  getUserRole: vi.fn(async () => "submitter"),
+}));
+
+vi.mock("@/lib/queries/portal-settings", () => ({
+  getBlindReviewEnabled: vi.fn(async () => ({ enabled: false, updatedBy: null, updatedAt: null })),
+}));
+
+vi.mock("@/lib/queries/review-state", () => ({
+  getIdeaStageState: vi.fn(async () => ({ data: null, error: null })),
+}));
+
+vi.mock("@/lib/review/blind-review", () => ({
+  shouldAnonymize: vi.fn(() => false),
+  anonymizeIdeaResponse: vi.fn((idea: unknown) => idea),
 }));
 
 vi.mock("@/lib/supabase/storage", () => ({
   getAttachmentUrl: (...args: unknown[]) => mockGetAttachmentUrl(...args),
   getAttachmentDownloadUrl: (...args: unknown[]) => mockGetAttachmentDownloadUrl(...args),
+}));
+
+vi.mock("@/lib/queries/idea-scores", () => ({
+  getScoreAggregateForIdea: vi.fn(async () => ({ data: { avgScore: null, scoreCount: 0 }, error: null })),
 }));
 
 // ── Helpers ─────────────────────────────────────────────

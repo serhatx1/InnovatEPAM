@@ -18,6 +18,8 @@ export interface UseAutoSaveOptions {
     draftId: string | null,
     stagingSessionId: string
   ) => Promise<{ id: string }>;
+  /** When false, auto-save is paused and pending timers are cancelled. Defaults to true. */
+  enabled?: boolean;
 }
 
 /**
@@ -29,6 +31,7 @@ export function useAutoSave({
   draftId: externalDraftId,
   stagingSessionId,
   onSave,
+  enabled = true,
 }: UseAutoSaveOptions) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [internalDraftId, setInternalDraftId] = useState<string | null>(
@@ -75,6 +78,15 @@ export function useAutoSave({
   );
 
   useEffect(() => {
+    // Cancel pending timer and skip saving when disabled
+    if (!enabled) {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
+    }
+
     const serialized = JSON.stringify(data);
 
     // Skip if data hasn't changed since last save
@@ -97,7 +109,7 @@ export function useAutoSave({
         clearTimeout(timerRef.current);
       }
     };
-  }, [data, doSave]);
+  }, [data, doSave, enabled]);
 
   return {
     saveStatus,

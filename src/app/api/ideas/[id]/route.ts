@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getAttachmentUrl, getAttachmentDownloadUrl } from "@/lib/supabase/storage";
-import { getIdeaById, getAttachmentsByIdeaId } from "@/lib/queries";
+import { getIdeaById, getAttachmentsByIdeaId, getUserRole } from "@/lib/queries";
+import { getBlindReviewEnabled } from "@/lib/queries/portal-settings";
+import { getIdeaStageState } from "@/lib/queries/review-state";
+import { getScoreAggregateForIdea } from "@/lib/queries/idea-scores";
+import { shouldAnonymize, anonymizeIdeaResponse } from "@/lib/review/blind-review";
 
 /**
  * GET /api/ideas/[id] — Get a single idea by ID.
@@ -76,9 +80,33 @@ export async function GET(
     ];
   }
 
+  // ── Blind review anonymization ─────────────────────────
+  const { enabled: blindReviewEnabled } = await getBlindReviewEnabled(supabase);
+  let responseIdea = idea;
+
+  if (blindReviewEnabled) {
+    const viewerRole = (await getUserRole(supabase, user.id)) ?? "submitter";
+    const { data: stageState } = await getIdeaStageState(supabase, id);
+    const terminalOutcome = stageState?.terminal_outcome ?? null;
+
+    const mask = shouldAnonymize({
+      viewerRole,
+      viewerId: user.id,
+      ideaUserId: idea.user_id,
+      terminalOutcome,
+      blindReviewEnabled: true,
+    });
+    responseIdea = anonymizeIdeaResponse(idea, mask);
+  }
+
+  // ── Score aggregate ────────────────────────────────────
+  const { data: scoreAggregate } = await getScoreAggregateForIdea(supabase, id);
+
   return NextResponse.json({
-    ...idea,
+    ...responseIdea,
     signed_attachment_url: signedAttachmentUrl,
     attachments,
+    avgScore: scoreAggregate.avgScore,
+    scoreCount: scoreAggregate.scoreCount,
   });
 }

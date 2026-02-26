@@ -3,12 +3,17 @@ import { getAttachmentUrl, getAttachmentDownloadUrl } from "@/lib/supabase/stora
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getIdeaById, getUserRole, getAttachmentsByIdeaId } from "@/lib/queries";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getBlindReviewEnabled } from "@/lib/queries/portal-settings";
+import { getIdeaStageState } from "@/lib/queries/review-state";
+import { getScoresForIdea, getScoreAggregateForIdea } from "@/lib/queries/idea-scores";
+import { shouldAnonymize } from "@/lib/review/blind-review";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AttachmentListDetail, type AttachmentDetail } from "@/components/ui/attachment-list-detail";
 import ReviewProgressTimeline from "@/components/review-progress-timeline";
+import ScoreForm from "@/components/score-form";
+import ScoresSection from "@/components/scores-section";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   draft: "outline",
@@ -44,13 +49,38 @@ export default async function IdeaDetailPage({
 
   // Fetch submitter email (FR-19/S6: show submitter name)
   let submitterEmail: string | null = null;
+  let submitterDisplayName: string | null = null;
+
+  // ── Blind review anonymization ─────────────────────────
+  const { enabled: blindReviewEnabled } = await getBlindReviewEnabled(supabase);
+  const role = await getUserRole(supabase, user.id);
+  const isAdmin = role === "admin";
+
   if (typedIdea) {
-    const { data: profile } = await supabase
-      .from("user_profile")
-      .select("email")
-      .eq("id", typedIdea.user_id)
-      .single();
-    submitterEmail = profile?.email ?? null;
+    let isAnonymized = false;
+
+    if (blindReviewEnabled) {
+      const { data: stageState } = await getIdeaStageState(supabase, id);
+      const terminalOutcome = stageState?.terminal_outcome ?? null;
+      isAnonymized = shouldAnonymize({
+        viewerRole: isAdmin ? "admin" : "submitter",
+        viewerId: user.id,
+        ideaUserId: typedIdea.user_id,
+        terminalOutcome,
+        blindReviewEnabled: true,
+      });
+    }
+
+    if (isAnonymized) {
+      submitterDisplayName = "Anonymous Submitter";
+    } else {
+      const { data: profile } = await supabase
+        .from("user_profile")
+        .select("email")
+        .eq("id", typedIdea.user_id)
+        .single();
+      submitterEmail = profile?.email ?? null;
+    }
   }
 
   if (error || !typedIdea) {
@@ -63,6 +93,26 @@ export default async function IdeaDetailPage({
         </Button>
       </main>
     );
+  }
+
+  // ── Scoring data ───────────────────────────────────────
+  let myScore: number | null = null;
+  let myComment: string | null = null;
+  let isTerminal = false;
+  let isOwnIdea = typedIdea.user_id === user.id;
+
+  if (isAdmin) {
+    // Fetch stage state to determine terminal status
+    const { data: stageState } = await getIdeaStageState(supabase, id);
+    isTerminal = stageState?.terminal_outcome !== null && stageState?.terminal_outcome !== undefined;
+
+    // Fetch evaluator's existing score
+    const { data: scores } = await getScoresForIdea(supabase, id);
+    const existing = scores.find((s) => s.evaluator_id === user.id);
+    if (existing) {
+      myScore = existing.score;
+      myComment = existing.comment;
+    }
   }
 
   // ── Resolve attachments ────────────────────────────────
@@ -107,90 +157,109 @@ export default async function IdeaDetailPage({
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
-      <Button asChild variant="ghost" size="sm" className="mb-4">
-        <Link href="/ideas">← Back to Ideas</Link>
-      </Button>
+      <div className="grid gap-4">
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight">{typedIdea.title}</h1>
+          <Badge variant={STATUS_VARIANT[typedIdea.status] ?? "outline"}>
+            {STATUS_LABEL[typedIdea.status] ?? typedIdea.status}
+          </Badge>
+        </div>
 
-      <Card className="border-border/60 shadow-none">
-        <CardHeader>
-          <div className="flex items-start justify-between gap-3">
-            <CardTitle className="text-3xl font-semibold tracking-tight">{typedIdea.title}</CardTitle>
-            <Badge variant={STATUS_VARIANT[typedIdea.status] ?? "outline"}>
-              {STATUS_LABEL[typedIdea.status] ?? typedIdea.status}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {/* Meta info */}
-          <div className="grid grid-cols-2 gap-y-2 text-sm leading-6">
-            <span className="font-medium text-muted-foreground">Category</span>
-            <span>{typedIdea.category}</span>
-            <span className="font-medium text-muted-foreground">Submitter</span>
-            <span>{submitterEmail ?? "Unknown"}</span>
-            <span className="font-medium text-muted-foreground">Submitted</span>
-            <span>{new Date(typedIdea.created_at).toLocaleString()}</span>
-            <span className="font-medium text-muted-foreground">Last Updated</span>
-            <span>{new Date(typedIdea.updated_at).toLocaleString()}</span>
-          </div>
+        {/* Meta info */}
+        <div className="grid grid-cols-2 gap-y-2 text-sm leading-6">
+          <span className="font-medium text-muted-foreground">Category</span>
+          <span>{typedIdea.category}</span>
+          <span className="font-medium text-muted-foreground">Submitter</span>
+          <span>{submitterDisplayName ?? submitterEmail ?? "Unknown"}</span>
+          <span className="font-medium text-muted-foreground">Submitted</span>
+          <span>{new Date(typedIdea.created_at).toLocaleString()}</span>
+          <span className="font-medium text-muted-foreground">Last Updated</span>
+          <span>{new Date(typedIdea.updated_at).toLocaleString()}</span>
+        </div>
 
-          <Separator />
+        <Separator />
 
-          {/* Description */}
-          <div>
-            <h2 className="text-sm font-medium text-muted-foreground mb-1">Description</h2>
-            <p className="whitespace-pre-wrap">{typedIdea.description}</p>
-          </div>
+        {/* Description */}
+        <div>
+          <h2 className="text-sm font-medium text-muted-foreground mb-1">Description</h2>
+          <p className="whitespace-pre-wrap">{typedIdea.description}</p>
+        </div>
 
-          {/* Category Fields */}
-          {typedIdea.category_fields && Object.keys(typedIdea.category_fields).length > 0 && (
-            <>
-              <Separator />
-              <div>
-                <h2 className="text-sm font-medium text-muted-foreground mb-2">Category Details</h2>
-                <ul className="grid gap-1 text-sm">
-                  {Object.entries(typedIdea.category_fields).map(([key, value]) => (
-                    <li key={key}>
-                      <span className="font-medium">{key.replaceAll("_", " ")}:</span>{" "}
-                      {String(value)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          )}
+        {/* Category Fields */}
+        {typedIdea.category_fields && Object.keys(typedIdea.category_fields).length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <h2 className="text-sm font-medium text-muted-foreground mb-2">Category Details</h2>
+              <ul className="grid gap-1 text-sm">
+                {Object.entries(typedIdea.category_fields).map(([key, value]) => (
+                  <li key={key}>
+                    <span className="font-medium">{key.replaceAll("_", " ")}:</span>{" "}
+                    {String(value)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
 
-          {/* Attachments */}
-          {attachmentDetails.length > 0 && (
-            <>
-              <Separator />
-              <div>
-                <h2 className="text-sm font-medium text-muted-foreground mb-2">Attachments</h2>
-                <AttachmentListDetail attachments={attachmentDetails} />
-              </div>
-            </>
-          )}
+        {/* Attachments */}
+        {attachmentDetails.length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <h2 className="text-sm font-medium text-muted-foreground mb-2">Attachments</h2>
+              <AttachmentListDetail attachments={attachmentDetails} />
+            </div>
+          </>
+        )}
 
-          {/* Evaluator Comment */}
-          {typedIdea.evaluator_comment && (
-            <>
-              <Separator />
-              <Card className="border-border/40 bg-muted/40 shadow-none">
-                <CardContent className="pt-4">
-                  <h2 className="text-sm font-medium text-muted-foreground mb-1">Evaluator Comment</h2>
-                  <p className="whitespace-pre-wrap text-sm">{typedIdea.evaluator_comment}</p>
-                </CardContent>
-              </Card>
-            </>
-          )}
+        {/* Evaluator Comment */}
+        {typedIdea.evaluator_comment && (
+          <>
+            <Separator />
+            <div className="rounded-lg border border-border/40 bg-muted/40 px-4 py-3">
+              <h2 className="text-sm font-medium text-muted-foreground mb-1">Evaluator Comment</h2>
+              <p className="whitespace-pre-wrap text-sm">{typedIdea.evaluator_comment}</p>
+            </div>
+          </>
+        )}
 
-          {/* Review Stage Progress */}
-          <Separator />
-          <div>
-            <h2 className="text-sm font-medium text-muted-foreground mb-2">Review Progress</h2>
-            <ReviewProgressTimeline ideaId={typedIdea.id} />
-          </div>
-        </CardContent>
-      </Card>
+        {/* Review Stage Progress */}
+        <Separator />
+        <div>
+          <h2 className="text-sm font-medium text-muted-foreground mb-2">Review Progress</h2>
+          <ReviewProgressTimeline ideaId={typedIdea.id} />
+        </div>
+
+        {/* Score Form (admin / evaluator only) */}
+        {isAdmin && (
+          <>
+            <Separator />
+            <div>
+              <h2 className="text-sm font-medium text-muted-foreground mb-2">Score</h2>
+              <ScoreForm
+                ideaId={typedIdea.id}
+                existingScore={myScore}
+                existingComment={myComment}
+                disabled={isTerminal}
+                disabledReason={isTerminal ? "Scoring is closed — idea has reached a terminal outcome." : undefined}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Scores overview (admins see all, submitters see their own idea) */}
+        {(isAdmin || isOwnIdea) && (
+          <>
+            <Separator />
+            <div>
+              <h2 className="text-sm font-medium text-muted-foreground mb-2">Scores</h2>
+              <ScoresSection ideaId={typedIdea.id} currentUserId={user.id} />
+            </div>
+          </>
+        )}
+      </div>
     </main>
   );
 }

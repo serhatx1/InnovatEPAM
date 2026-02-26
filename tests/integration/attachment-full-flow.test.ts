@@ -16,6 +16,7 @@ const mockGetAttachmentDownloadUrl = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
     auth: { getUser: mockGetUser },
+    from: vi.fn(() => ({ select: vi.fn(() => ({ in: vi.fn(async () => ({ data: [], error: null })) })) })),
   })),
 }));
 
@@ -25,6 +26,22 @@ vi.mock("@/lib/queries", () => ({
   createAttachments: (...args: unknown[]) => mockCreateAttachments(...args),
   getIdeaById: (...args: unknown[]) => mockGetIdeaById(...args),
   getAttachmentsByIdeaId: (...args: unknown[]) => mockGetAttachmentsByIdeaId(...args),
+  bindSubmittedIdeaToWorkflow: vi.fn(async () => ({ data: null, error: null })),
+  getUserRole: vi.fn(async () => "submitter"),
+}));
+
+vi.mock("@/lib/queries/portal-settings", () => ({
+  getBlindReviewEnabled: vi.fn(async () => ({ enabled: false, updatedBy: null, updatedAt: null })),
+}));
+
+vi.mock("@/lib/queries/review-state", () => ({
+  getIdeaStageState: vi.fn(async () => ({ data: null, error: null })),
+}));
+
+vi.mock("@/lib/review/blind-review", () => ({
+  shouldAnonymize: vi.fn(() => false),
+  anonymizeIdeaResponse: vi.fn((idea: unknown) => idea),
+  anonymizeIdeaList: vi.fn((ideas: unknown[]) => ideas),
 }));
 
 vi.mock("@/lib/supabase/storage", () => ({
@@ -40,6 +57,11 @@ vi.mock("@/lib/validation/category-fields", () => ({
     data: {},
     errors: {},
   }),
+}));
+
+vi.mock("@/lib/queries/idea-scores", () => ({
+  getScoreAggregateForIdea: vi.fn(async () => ({ data: { avgScore: null, scoreCount: 0 }, error: null })),
+  getScoreAggregatesForIdeas: vi.fn(async () => ({ data: new Map(), error: null })),
 }));
 
 // ── Helpers ─────────────────────────────────────────────

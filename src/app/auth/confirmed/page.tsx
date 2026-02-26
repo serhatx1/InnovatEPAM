@@ -53,9 +53,7 @@ export default function EmailConfirmedPage() {
           <Button asChild>
             <Link href="/auth/login">Go to Login</Link>
           </Button>
-          <Button asChild variant="ghost">
-            <Link href="/">Back to Home</Link>
-          </Button>
+      
         </CardContent>
       </Card>
     </main>

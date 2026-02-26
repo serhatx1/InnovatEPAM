@@ -16,6 +16,7 @@ vi.mock("@/lib/supabase/server", () => ({
 vi.mock("@/lib/queries", () => ({
   getDraftById: (...args: unknown[]) => mockGetDraftById(...args),
   submitDraft: (...args: unknown[]) => mockSubmitDraft(...args),
+  bindSubmittedIdeaToWorkflow: vi.fn(async () => ({ data: null, error: null })),
 }));
 
 vi.mock("@/lib/validation/category-fields", () => ({

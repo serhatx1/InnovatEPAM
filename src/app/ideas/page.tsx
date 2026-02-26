@@ -2,6 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUserRole, listIdeas } from "@/lib/queries";
+import { getBlindReviewEnabled } from "@/lib/queries/portal-settings";
+import { anonymizeIdeaList } from "@/lib/review/blind-review";
+import type { ReviewTerminalOutcome } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,11 +35,41 @@ export default async function IdeasListPage() {
 
   if (!user) redirect("/auth/login");
 
-  const role = await getUserRole(supabase, user.id);
-  const isAdmin = role === "admin";
+  // Parallelize independent queries for faster page load
+  const [role, ideasResult, blindReviewResult] = await Promise.all([
+    getUserRole(supabase, user.id),
+    listIdeas(supabase),
+    getBlindReviewEnabled(supabase),
+  ]);
 
-  // FR-17: All authenticated users see all ideas
-  const { data: ideaList, error } = await listIdeas(supabase);
+  const isAdmin = role === "admin";
+  const { data: rawIdeaList, error } = ideasResult;
+  const { enabled: blindReviewEnabled } = blindReviewResult;
+
+  // ── Blind review anonymization (server-side) ───────────
+  let ideaList = rawIdeaList;
+
+  if (blindReviewEnabled && rawIdeaList.length > 0) {
+    const ideaIds = rawIdeaList.map((i) => i.id);
+    const terminalOutcomes = new Map<string, ReviewTerminalOutcome | null>();
+
+    const { data: stageStates } = await supabase
+      .from("idea_stage_state")
+      .select("idea_id, terminal_outcome")
+      .in("idea_id", ideaIds);
+
+    for (const state of stageStates ?? []) {
+      terminalOutcomes.set(state.idea_id, state.terminal_outcome);
+    }
+
+    ideaList = anonymizeIdeaList(
+      rawIdeaList,
+      isAdmin ? "admin" : "submitter",
+      user.id,
+      true,
+      terminalOutcomes
+    );
+  }
 
   if (error) {
     return (
@@ -58,13 +91,7 @@ export default async function IdeasListPage() {
 
       <p className="mt-2 text-sm text-muted-foreground">Discover and track innovation submissions.</p>
 
-      {isAdmin && (
-        <p className="mt-2">
-          <Button asChild variant="link" className="px-0">
-            <Link href="/admin/review">Go to Admin Review Dashboard →</Link>
-          </Button>
-        </p>
-      )}
+     
 
       <Separator className="my-6" />
 
@@ -85,6 +112,12 @@ export default async function IdeasListPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    {"submitter_display_name" in idea && idea.submitter_display_name && (
+                      <>
+                        <span>{idea.submitter_display_name}</span>
+                        <span>·</span>
+                      </>
+                    )}
                     <span>{idea.category}</span>
                     <span>·</span>
                     <span>{new Date(idea.created_at).toLocaleDateString()}</span>

@@ -22,8 +22,8 @@ export default async function VerifyEmailPage({
           <p className="text-sm text-muted-foreground">
             Open the message and click the confirmation link to finish activation.
           </p>
-          <Button asChild variant="outline">
-            <Link href="/auth/login">Back to Login</Link>
+          <Button variant="outline" asChild className="mt-2">
+            <Link href="/auth/login">Back to login</Link>
           </Button>
         </CardContent>
       </Card>

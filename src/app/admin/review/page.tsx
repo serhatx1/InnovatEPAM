@@ -2,8 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUserRole, listIdeas } from "@/lib/queries";
+import { getScoreAggregatesForIdeas } from "@/lib/queries/idea-scores";
 import AdminActions from "./AdminActions";
 import StageActions from "./StageActions";
+import ScoreSortToggle from "@/components/score-sort-toggle";
+import ScoreForm from "@/components/score-form";
+import ScoresSection from "@/components/scores-section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +29,12 @@ const STATUS_LABEL: Record<string, string> = {
   rejected: "Rejected",
 };
 
-export default async function AdminReviewPage() {
+export default async function AdminReviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sortBy?: string; sortDir?: string }>;
+}) {
+  const params = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -56,9 +65,66 @@ export default async function AdminReviewPage() {
   const { data: allIdeas, error } = await listIdeas(supabase);
 
   // FR-24: Show only actionable ideas (submitted, under_review)
-  const ideaList = (allIdeas ?? []).filter(
+  const filteredIdeas = (allIdeas ?? []).filter(
     (idea) => idea.status === "submitted" || idea.status === "under_review"
   );
+
+  // Fetch score aggregates for listed ideas
+  const ideaIds = filteredIdeas.map((i) => i.id);
+  const { data: scoreMap } = await getScoreAggregatesForIdeas(supabase, ideaIds);
+
+  // Fetch admin's existing scores for all displayed ideas (batch)
+  const { data: adminScoreRows } = ideaIds.length > 0
+    ? await supabase
+        .from("idea_score")
+        .select("idea_id, score, comment")
+        .eq("evaluator_id", user.id)
+        .in("idea_id", ideaIds)
+    : { data: [] };
+
+  const adminScoreMap = new Map<string, { score: number; comment: string | null }>();
+  for (const row of adminScoreRows ?? []) {
+    adminScoreMap.set(row.idea_id, { score: row.score, comment: row.comment });
+  }
+
+  // Fetch terminal status for displayed ideas (batch)
+  const { data: stageStateRows } = ideaIds.length > 0
+    ? await supabase
+        .from("idea_stage_state")
+        .select("idea_id, terminal_outcome")
+        .in("idea_id", ideaIds)
+    : { data: [] };
+
+  const terminalMap = new Map<string, boolean>();
+  for (const row of stageStateRows ?? []) {
+    terminalMap.set(row.idea_id, row.terminal_outcome !== null);
+  }
+
+  // Enrich with scores
+  let ideaList = filteredIdeas.map((idea) => {
+    const agg = scoreMap.get(idea.id);
+    const adminScore = adminScoreMap.get(idea.id);
+    return {
+      ...idea,
+      avgScore: agg?.avgScore ?? null,
+      scoreCount: agg?.scoreCount ?? 0,
+      myScore: adminScore?.score ?? null,
+      myComment: adminScore?.comment ?? null,
+      isTerminal: terminalMap.get(idea.id) ?? false,
+      isOwnIdea: idea.user_id === user.id,
+    };
+  });
+
+  // Sort by avgScore if requested
+  if (params.sortBy === "avgScore") {
+    const dir = params.sortDir ?? "desc";
+    ideaList = ideaList.sort((a, b) => {
+      if (a.avgScore === null && b.avgScore === null) return 0;
+      if (a.avgScore === null) return 1;
+      if (b.avgScore === null) return -1;
+      return dir === "asc" ? a.avgScore - b.avgScore : b.avgScore - a.avgScore;
+    });
+  }
 
   if (error) {
     return (
@@ -77,14 +143,12 @@ export default async function AdminReviewPage() {
       <p className="mt-2 text-sm text-muted-foreground">Review actionable submissions and finalize decisions.</p>
       <div className="flex gap-2 mt-2">
         <Button asChild variant="ghost" size="sm">
-          <Link href="/ideas">← Ideas</Link>
-        </Button>
-        <Button asChild variant="ghost" size="sm">
           <Link href="/">Home</Link>
         </Button>
         <Button asChild variant="outline" size="sm">
           <Link href="/admin/review/workflow">⚙ Workflow Config</Link>
         </Button>
+        <ScoreSortToggle />
       </div>
 
       <Separator className="my-6" />
@@ -108,6 +172,15 @@ export default async function AdminReviewPage() {
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {idea.category} · {new Date(idea.created_at).toLocaleDateString()}
+                  {idea.scoreCount > 0 && (
+                    <span data-testid="idea-score-badge">
+                      {" "}· Avg Score: {idea.avgScore?.toFixed(1)} ({idea.scoreCount}{" "}
+                      {idea.scoreCount === 1 ? "review" : "reviews"})
+                    </span>
+                  )}
+                  {idea.scoreCount === 0 && (
+                    <span className="text-muted-foreground/60" data-testid="idea-no-score"> · No scores</span>
+                  )}
                 </p>
               </CardHeader>
               <CardContent className="grid gap-3">
@@ -129,6 +202,26 @@ export default async function AdminReviewPage() {
 
                 <AdminActions ideaId={idea.id} currentStatus={idea.status} />
                 <StageActions ideaId={idea.id} />
+
+                {/* Score Form */}
+                <Separator />
+                <div>
+                  <h2 className="text-sm font-medium text-muted-foreground mb-2">Score</h2>
+                  <ScoreForm
+                    ideaId={idea.id}
+                    existingScore={idea.myScore}
+                    existingComment={idea.myComment}
+                    disabled={idea.isTerminal}
+                    disabledReason={idea.isTerminal ? "Scoring is closed — idea has reached a terminal outcome." : undefined}
+                  />
+                </div>
+
+                {/* Scores Overview */}
+                <Separator />
+                <div>
+                  <h2 className="text-sm font-medium text-muted-foreground mb-2">Scores</h2>
+                  <ScoresSection ideaId={idea.id} currentUserId={user.id} />
+                </div>
               </CardContent>
             </Card>
           ))}

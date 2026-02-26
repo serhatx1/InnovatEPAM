@@ -19,12 +19,12 @@ InnovatEPAM Portal is an internal employee innovation management platform where 
 - [X] DB schema with RLS policies
 
 ### Phases 2-7 Features (if completed)
-- [ ] Phase 2 - Smart Submission Forms
-- [ ] Phase 3 - Multi-Media Support
-- [ ] Phase 4 - Draft Management
-- [ ] Phase 5 - Multi-Stage Review
-- [ ] Phase 6 - Blind Review
-- [ ] Phase 7 - Scoring System
+- [X] Phase 2 - Smart Submission Forms (dynamic category fields via JSONB)
+- [X] Phase 3 - Multi-Media Support (multiple file attachments per idea)
+- [X] Phase 4 - Draft Management (save/edit/submit drafts)
+- [X] Phase 5 - Multi-Stage Review (configurable workflow stages)
+- [X] Phase 6 - Blind Review (anonymous evaluation toggle)
+- [X] Phase 7 - Scoring System (1-5 ratings with aggregates)
 
 ## Technical Stack
 
@@ -37,9 +37,13 @@ Based on ADRs:
 
 ## Test Coverage
 
-- **Tests passing**: 114 tests (12 test files)
-- **Overall coverage**: ~51% (src/lib/ core logic ≥ 90%)
-- **Test areas**: Input validation, role helpers, type contracts, status transitions, file validation, query functions, storage helpers, middleware, integration tests (Supabase Auth, CRUD, RLS, Storage)
+- **Test files**: 99 passed, 1 skipped (100 total)
+- **Tests**: 882 passed, 6 skipped (888 total)
+- **Statement coverage**: 90.57%
+- **Branch coverage**: 83.95%
+- **Function coverage**: 89.86%
+- **Line coverage**: 91.87%
+- **Test areas**: Input validation, role helpers, type contracts, status transitions, file validation, query functions, storage helpers, middleware, scoring eligibility, blind review, multi-stage review, admin actions, API routes (stage, cleanup-staging, score, drafts, ideas), component tests (IdeaForm, AdminActions, ScoresSection, DraftEditPage, auth pages), integration tests (Supabase Auth, CRUD, RLS, Storage, scoring flow, review stages)
 
 ## Transformation Reflection
 
@@ -54,5 +58,5 @@ Specifications are not overhead — they are the context that makes AI-assisted 
 
 ---
 **Author**: Serhat Arslan  
-**Date**: 2026-02-24  
+**Date**: 2026-02-27  
 **Course**: A201 - Beyond Vibe Coding

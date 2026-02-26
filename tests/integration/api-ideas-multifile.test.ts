@@ -12,6 +12,7 @@ const mockDeleteAttachments = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
     auth: { getUser: mockGetUser },
+    from: vi.fn(() => ({ select: vi.fn(() => ({ in: vi.fn(async () => ({ data: [], error: null })) })) })),
   })),
 }));
 
@@ -19,6 +20,16 @@ vi.mock("@/lib/queries", () => ({
   listIdeas: (...args: unknown[]) => mockListIdeas(...args),
   createIdea: (...args: unknown[]) => mockCreateIdea(...args),
   createAttachments: (...args: unknown[]) => mockCreateAttachments(...args),
+  bindSubmittedIdeaToWorkflow: vi.fn(async () => ({ data: null, error: null })),
+  getUserRole: vi.fn(async () => "submitter"),
+}));
+
+vi.mock("@/lib/queries/portal-settings", () => ({
+  getBlindReviewEnabled: vi.fn(async () => ({ enabled: false, updatedBy: null, updatedAt: null })),
+}));
+
+vi.mock("@/lib/review/blind-review", () => ({
+  anonymizeIdeaList: vi.fn((ideas: unknown[]) => ideas),
 }));
 
 vi.mock("@/lib/supabase/storage", () => ({

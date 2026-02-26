@@ -49,3 +49,16 @@ export type {
   CreateStageStateInput,
   RecordStageEventInput,
 } from "./review-state";
+
+export {
+  getBlindReviewEnabled,
+  setBlindReviewEnabled,
+} from "./portal-settings";
+
+export {
+  upsertScore,
+  getScoresForIdea,
+  getScoreAggregateForIdea,
+  getScoreAggregatesForIdeas,
+} from "./idea-scores";
+export type { UpsertScoreInput } from "./idea-scores";

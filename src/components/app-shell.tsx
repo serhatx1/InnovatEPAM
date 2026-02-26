@@ -25,8 +25,8 @@ export async function AppShell({ children }: AppShellProps) {
   const { count: draftCount } = await getDraftCount(supabase, user.id);
 
   return (
-    <div className="min-h-screen bg-background md:grid md:grid-cols-[240px_1fr]">
-      <aside className="hidden border-r bg-card md:flex md:flex-col">
+    <div className="min-h-screen bg-background">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r bg-card md:flex" style={{ height: '100vh' }}>
         <div className="px-5 py-4">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             InnovatEPAM
@@ -36,7 +36,7 @@ export async function AppShell({ children }: AppShellProps) {
 
         <Separator />
 
-        <nav className="flex-1 px-3 py-4">
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="grid gap-1">
             <li>
               <Button asChild variant="ghost" className="w-full justify-start">
@@ -79,6 +79,13 @@ export async function AppShell({ children }: AppShellProps) {
                 </Button>
               </li>
             )}
+            {isAdmin && (
+              <li>
+                <Button asChild variant="ghost" className="w-full justify-start">
+                  <Link href="/admin/review/settings">Review Settings</Link>
+                </Button>
+              </li>
+            )}
           </ul>
         </nav>
 
@@ -92,7 +99,7 @@ export async function AppShell({ children }: AppShellProps) {
         </div>
       </aside>
 
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen flex-col md:ml-60">
         <header className="border-b bg-background px-4 py-3 md:hidden">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-semibold tracking-tight">InnovatEPAM</p>
@@ -125,6 +132,11 @@ export async function AppShell({ children }: AppShellProps) {
             {isAdmin && (
               <Button asChild variant="outline" size="sm">
                 <Link href="/admin/review/workflow">Workflow</Link>
+              </Button>
+            )}
+            {isAdmin && (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/admin/review/settings">Settings</Link>
               </Button>
             )}
           </div>

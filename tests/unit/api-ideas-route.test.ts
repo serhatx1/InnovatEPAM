@@ -12,6 +12,7 @@ const mockCreateAttachments = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
     auth: { getUser: mockGetUser },
+    from: vi.fn(() => ({ select: vi.fn(() => ({ in: vi.fn(async () => ({ data: [], error: null })) })) })),
   })),
 }));
 
@@ -19,6 +20,20 @@ vi.mock("@/lib/queries", () => ({
   listIdeas: (...args: unknown[]) => mockListIdeas(...args),
   createIdea: (...args: unknown[]) => mockCreateIdea(...args),
   createAttachments: (...args: unknown[]) => mockCreateAttachments(...args),
+  bindSubmittedIdeaToWorkflow: vi.fn(async () => ({ data: null, error: null })),
+  getUserRole: vi.fn(async () => "submitter"),
+}));
+
+vi.mock("@/lib/queries/portal-settings", () => ({
+  getBlindReviewEnabled: vi.fn(async () => ({ enabled: false, updatedBy: null, updatedAt: null })),
+}));
+
+vi.mock("@/lib/queries/idea-scores", () => ({
+  getScoreAggregatesForIdeas: vi.fn(async () => ({ data: new Map(), error: null })),
+}));
+
+vi.mock("@/lib/review/blind-review", () => ({
+  anonymizeIdeaList: vi.fn((ideas: unknown[]) => ideas),
 }));
 
 vi.mock("@/lib/supabase/storage", () => ({
@@ -45,6 +60,10 @@ function unauthenticated() {
   mockGetUser.mockResolvedValue({ data: { user: null } });
 }
 
+function makeRequest(url = "http://localhost:3000/api/ideas"): Request {
+  return { url } as any;
+}
+
 function makeFormData(fields: Record<string, string>, file?: File): Request {
   const formData = new FormData();
   for (const [key, value] of Object.entries(fields)) {
@@ -64,7 +83,7 @@ describe("GET /api/ideas", () => {
   it("returns 401 for unauthenticated request", async () => {
     unauthenticated();
     const { GET } = await import("@/app/api/ideas/route");
-    const response = await GET();
+    const response = await GET(makeRequest() as any);
     const body = await response.json();
 
     expect(response.status).toBe(401);
@@ -80,7 +99,7 @@ describe("GET /api/ideas", () => {
     mockListIdeas.mockResolvedValue({ data: ideas, error: null });
 
     const { GET } = await import("@/app/api/ideas/route");
-    const response = await GET();
+    const response = await GET(makeRequest() as any);
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -93,7 +112,7 @@ describe("GET /api/ideas", () => {
     mockListIdeas.mockResolvedValue({ data: [], error: "DB connection failed" });
 
     const { GET } = await import("@/app/api/ideas/route");
-    const response = await GET();
+    const response = await GET(makeRequest() as any);
     const body = await response.json();
 
     expect(response.status).toBe(500);

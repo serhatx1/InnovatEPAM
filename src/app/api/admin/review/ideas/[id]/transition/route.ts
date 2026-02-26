@@ -210,6 +210,18 @@ export async function POST(
     console.error("Failed to record stage event:", eventError);
   }
 
+  // Sync idea.status when a terminal outcome is reached
+  if (terminalOutcome) {
+    const newStatus = terminalOutcome === "accepted" ? "accepted" : "rejected";
+    const { error: statusError } = await supabase
+      .from("idea")
+      .update({ status: newStatus })
+      .eq("id", id);
+    if (statusError) {
+      console.error("Failed to sync idea status:", statusError);
+    }
+  }
+
   // Build response
   const stageMap = new Map(stages.map((s) => [s.id, s.name]));
 

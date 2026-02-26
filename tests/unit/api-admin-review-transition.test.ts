@@ -10,9 +10,16 @@ const mockUpdateIdeaStageState = vi.fn();
 const mockRecordStageEvent = vi.fn();
 const mockGetWorkflowById = vi.fn();
 
+const mockFrom = vi.fn(() => ({
+  update: vi.fn(() => ({
+    eq: vi.fn(() => Promise.resolve({ error: null })),
+  })),
+}));
+
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
     auth: { getUser: mockGetUser },
+    from: mockFrom,
   })),
 }));
 

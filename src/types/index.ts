@@ -113,3 +113,36 @@ export interface ReviewStageEvent {
   actor_id: string;
   occurred_at: string;
 }
+
+/** Portal-wide configuration setting (key-value store) */
+export interface PortalSetting {
+  key: string;
+  value: unknown;
+  updated_by: string;
+  updated_at: string;
+}
+
+// ── Scoring System ──────────────────────────────────────
+
+/** A single evaluator's score for an idea (1–5 rating). */
+export interface IdeaScore {
+  id: string;
+  idea_id: string;
+  evaluator_id: string;
+  score: number;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Aggregated score summary for an idea (computed, not stored). */
+export interface ScoreAggregate {
+  avgScore: number | null;
+  scoreCount: number;
+}
+
+/** Idea extended with aggregate score fields. */
+export interface IdeaWithScore extends Idea {
+  avgScore: number | null;
+  scoreCount: number;
+}

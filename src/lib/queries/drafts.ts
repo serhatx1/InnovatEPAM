@@ -117,25 +117,35 @@ export async function listDrafts(
 // ── Soft Delete ─────────────────────────────────────────
 
 /**
- * Soft-delete a draft by setting deleted_at to now.
+ * Soft-delete a draft by calling SECURITY DEFINER RPC that bypasses RLS.
+ * Ownership is validated by the function itself (owner_id must match).
  */
 export async function softDeleteDraft(
   supabase: SupabaseClient,
   id: string
-): Promise<{ data: Idea | null; error: string | null }> {
-  const { data, error } = await supabase
-    .from("idea")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id)
-    .eq("status", "draft")
-    .is("deleted_at", null)
-    .select()
-    .single();
+): Promise<{ data: null; error: string | null }> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  return {
-    data: data as Idea | null,
-    error: error?.message ?? null,
-  };
+  if (!user) {
+    return { data: null, error: "Unauthorized" };
+  }
+
+  const { data: success, error } = await supabase.rpc("soft_delete_draft", {
+    draft_id: id,
+    owner_id: user.id,
+  });
+
+  if (error) {
+    return { data: null, error: error.message };
+  }
+
+  if (!success) {
+    return { data: null, error: "Draft not found or already deleted" };
+  }
+
+  return { data: null, error: null };
 }
 
 // ── Submit ──────────────────────────────────────────────

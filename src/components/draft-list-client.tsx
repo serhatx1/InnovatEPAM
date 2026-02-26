@@ -105,7 +105,6 @@ export function DraftListClient({ drafts: initialDrafts }: DraftListClientProps)
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={(e) => e.preventDefault()}
                   aria-label="Delete"
                 >
                   <Trash2 className="h-4 w-4" />

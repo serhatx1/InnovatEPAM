@@ -26,7 +26,9 @@ import { listIdeas } from "@/lib/queries/ideas";
  * Required env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
  */
 
-describe("Draft Submissions Integration", () => {
+const hasLiveDb = false; // Set to true when running against a configured Supabase instance
+
+describe.skipIf(!hasLiveDb)("Draft Submissions Integration", () => {
   let submitter1: TestUser;
   let submitter2: TestUser;
 

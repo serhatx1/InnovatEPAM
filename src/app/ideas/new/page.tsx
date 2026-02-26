@@ -38,6 +38,7 @@ export default function NewIdeaPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [draftId, setDraftId] = useState<string | null>(null);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
 
   // Generate a stable staging session ID for pre-draft file uploads
   const stagingSessionId = useMemo(
@@ -82,6 +83,7 @@ export default function NewIdeaPage() {
     draftId,
     stagingSessionId,
     onSave: handleAutoSave,
+    enabled: autoSaveEnabled,
   });
 
   // Keep draftId in sync with auto-save
@@ -217,6 +219,7 @@ export default function NewIdeaPage() {
     setCategoryFieldErrors({});
     setFileError(null);
     setLoading(true);
+    setAutoSaveEnabled(false);
 
     const formData = new FormData();
     formData.set("title", title);
@@ -228,6 +231,7 @@ export default function NewIdeaPage() {
     if (!dynamicValidation.success) {
       setCategoryFieldErrors(dynamicValidation.errors);
       setLoading(false);
+      setAutoSaveEnabled(true);
       return;
     }
 
@@ -249,11 +253,18 @@ export default function NewIdeaPage() {
         throw new Error(body.error || "Failed to submit idea");
       }
 
+      // Clean up the auto-saved draft so it doesn't linger
+      const currentDraftId = draftId ?? autoSaveDraftId;
+      if (currentDraftId) {
+        await fetch(`/api/drafts/${currentDraftId}`, { method: "DELETE" }).catch(() => {});
+      }
+
       toast.success("Idea submitted successfully!");
       router.push("/ideas");
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
+      setAutoSaveEnabled(true);
     } finally {
       setLoading(false);
     }
