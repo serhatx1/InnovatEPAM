@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { IdeaStatus } from "@/types";
 import { toast } from "sonner";
@@ -29,6 +29,19 @@ export default function AdminActions({ ideaId, currentStatus }: AdminActionsProp
   const [status, setStatus] = useState<string>(currentStatus);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [hasStageState, setHasStageState] = useState<boolean | null>(null);
+
+  // Check if this idea is in staged review — if so, hide old controls
+  useEffect(() => {
+    fetch(`/api/admin/review/ideas/${ideaId}/stage`)
+      .then((res) => setHasStageState(res.ok))
+      .catch(() => setHasStageState(false));
+  }, [ideaId]);
+
+  // Still loading stage check
+  if (hasStageState === null) return null;
+  // Idea is in staged review — StageActions handles it
+  if (hasStageState) return null;
 
   async function handleStatusUpdate(newStatus: string) {
     // Reject requires a comment of at least 10 characters (FR-26)

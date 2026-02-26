@@ -3,12 +3,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUserRole, listIdeas } from "@/lib/queries";
 import AdminActions from "./AdminActions";
+import StageActions from "./StageActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  draft: "outline",
   submitted: "outline",
   under_review: "secondary",
   accepted: "default",
@@ -16,6 +18,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
 };
 
 const STATUS_LABEL: Record<string, string> = {
+  draft: "Draft",
   submitted: "Submitted",
   under_review: "Under Review",
   accepted: "Accepted",
@@ -79,6 +82,9 @@ export default async function AdminReviewPage() {
         <Button asChild variant="ghost" size="sm">
           <Link href="/">Home</Link>
         </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/admin/review/workflow">⚙ Workflow Config</Link>
+        </Button>
       </div>
 
       <Separator className="my-6" />
@@ -122,6 +128,7 @@ export default async function AdminReviewPage() {
                 )}
 
                 <AdminActions ideaId={idea.id} currentStatus={idea.status} />
+                <StageActions ideaId={idea.id} />
               </CardContent>
             </Card>
           ))}
