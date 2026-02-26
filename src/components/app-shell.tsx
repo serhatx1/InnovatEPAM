@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getUserRole } from "@/lib/queries";
+import { getUserRole, getDraftCount } from "@/lib/queries";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 type AppShellProps = {
@@ -20,6 +21,8 @@ export async function AppShell({ children }: AppShellProps) {
 
   const role = await getUserRole(supabase, user.id);
   const isAdmin = role === "admin";
+
+  const { count: draftCount } = await getDraftCount(supabase, user.id);
 
   return (
     <div className="min-h-screen bg-background md:grid md:grid-cols-[240px_1fr]">
@@ -50,10 +53,29 @@ export async function AppShell({ children }: AppShellProps) {
                 <Link href="/ideas/new">Submit Idea</Link>
               </Button>
             </li>
+            <li>
+              <Button asChild variant="ghost" className="w-full justify-start">
+                <Link href="/ideas/drafts">
+                  My Drafts
+                  {(draftCount ?? 0) > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {draftCount}
+                    </Badge>
+                  )}
+                </Link>
+              </Button>
+            </li>
             {isAdmin && (
               <li>
                 <Button asChild variant="ghost" className="w-full justify-start">
                   <Link href="/admin/review">Admin Review</Link>
+                </Button>
+              </li>
+            )}
+            {isAdmin && (
+              <li>
+                <Button asChild variant="ghost" className="w-full justify-start">
+                  <Link href="/admin/review/workflow">Workflow Config</Link>
                 </Button>
               </li>
             )}
@@ -85,9 +107,24 @@ export async function AppShell({ children }: AppShellProps) {
             <Button asChild variant="outline" size="sm">
               <Link href="/ideas/new">Submit</Link>
             </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/ideas/drafts">
+                Drafts
+                {(draftCount ?? 0) > 0 && (
+                  <Badge variant="secondary" className="ml-1">
+                    {draftCount}
+                  </Badge>
+                )}
+              </Link>
+            </Button>
             {isAdmin && (
               <Button asChild variant="outline" size="sm">
                 <Link href="/admin/review">Admin</Link>
+              </Button>
+            )}
+            {isAdmin && (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/admin/review/workflow">Workflow</Link>
               </Button>
             )}
           </div>

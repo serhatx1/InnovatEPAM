@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  draft: "outline",
   submitted: "outline",
   under_review: "secondary",
   accepted: "default",
@@ -15,6 +16,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
 };
 
 const STATUS_LABEL: Record<string, string> = {
+  draft: "Draft",
   submitted: "Submitted",
   under_review: "Under Review",
   accepted: "Accepted",

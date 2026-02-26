@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ideaSchema, validateFiles } from "@/lib/validation/idea";
 import { validateCategoryFieldsForCategory } from "@/lib/validation/category-fields";
 import { uploadMultipleAttachments, deleteAttachments } from "@/lib/supabase/storage";
-import { listIdeas, createIdea, createAttachments } from "@/lib/queries";
+import { listIdeas, createIdea, createAttachments, bindSubmittedIdeaToWorkflow } from "@/lib/queries";
 
 /**
  * GET /api/ideas — List all ideas for any authenticated user (FR-17).
@@ -176,6 +176,9 @@ export async function POST(request: NextRequest) {
 
     attachmentRecords = attachments;
   }
+
+  // Bind to active review workflow (best-effort — no error if no workflow exists)
+  await bindSubmittedIdeaToWorkflow(supabase, idea.id, user.id).catch(() => {});
 
   return NextResponse.json(
     { ...idea, attachments: attachmentRecords ?? [] },

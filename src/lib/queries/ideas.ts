@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import type { Idea } from "@/types";
+import type { Idea, IdeaStageState, ReviewStageEvent } from "@/types";
+import { bindIdeaToActiveWorkflow } from "@/lib/review/workflow-binding";
 
 // ── List ────────────────────────────────────────────────
 
@@ -20,6 +21,8 @@ export async function listIdeas(
   let query = supabase
     .from("idea")
     .select("*")
+    .neq("status", "draft")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (options.userId) {
@@ -129,4 +132,23 @@ export async function ideaExists(
     .single();
 
   return !error && !!data;
+}
+
+// ── Workflow Binding ────────────────────────────────────
+
+/**
+ * Bind a newly submitted idea to the active workflow's first stage.
+ * Call this after an idea enters 'submitted' status.
+ * Returns null binding data (no error) if no active workflow is configured,
+ * allowing graceful fallback when review workflow is not yet set up.
+ */
+export async function bindSubmittedIdeaToWorkflow(
+  supabase: SupabaseClient,
+  ideaId: string,
+  actorId: string
+): Promise<{
+  data: { state: IdeaStageState; event: ReviewStageEvent } | null;
+  error: string | null;
+}> {
+  return bindIdeaToActiveWorkflow(supabase, ideaId, actorId);
 }

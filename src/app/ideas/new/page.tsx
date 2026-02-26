@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -23,10 +23,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FileUploadZone } from "@/components/ui/file-upload-zone";
 import { UploadProgress } from "@/components/ui/upload-progress";
+import { SaveStatusIndicator } from "@/components/ui/save-status-indicator";
+import { useAutoSave } from "@/lib/hooks/use-auto-save";
 
 export default function NewIdeaPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<IdeaCategory | "">("");
@@ -34,6 +37,57 @@ export default function NewIdeaPage() {
   const [categoryFieldErrors, setCategoryFieldErrors] = useState<Record<string, string[]>>({});
   const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(null);
+
+  // Generate a stable staging session ID for pre-draft file uploads
+  const stagingSessionId = useMemo(
+    () => crypto.randomUUID(),
+    []
+  );
+
+  // Auto-save data object
+  const autoSaveData = useMemo(
+    () => ({
+      title,
+      description,
+      category: selectedCategory || undefined,
+      category_fields: Object.keys(categoryFieldValues).length > 0 ? categoryFieldValues : undefined,
+    }),
+    [title, description, selectedCategory, categoryFieldValues]
+  );
+
+  // Auto-save handler
+  async function handleAutoSave(
+    data: Record<string, unknown>,
+    existingDraftId: string | null,
+    sessionId: string
+  ): Promise<{ id: string }> {
+    const url = existingDraftId ? `/api/drafts/${existingDraftId}` : "/api/drafts";
+    const method = existingDraftId ? "PATCH" : "POST";
+    const body = existingDraftId ? data : { ...data, stagingSessionId: sessionId };
+
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) throw new Error("Auto-save failed");
+    const result = await res.json();
+    return { id: result.id };
+  }
+
+  const { saveStatus, draftId: autoSaveDraftId } = useAutoSave({
+    data: autoSaveData,
+    draftId,
+    stagingSessionId,
+    onSave: handleAutoSave,
+  });
+
+  // Keep draftId in sync with auto-save
+  if (autoSaveDraftId && autoSaveDraftId !== draftId) {
+    setDraftId(autoSaveDraftId);
+  }
 
   const activeCategoryFields = selectedCategory
     ? CATEGORY_FIELD_DEFINITIONS[selectedCategory] ?? []
@@ -93,6 +147,71 @@ export default function NewIdeaPage() {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
+  async function handleSaveDraft() {
+    setSavingDraft(true);
+
+    try {
+      // Upload files to staging first (if any and no draft yet)
+      const stagingFiles: Array<{
+        storagePath: string;
+        originalFileName: string;
+        fileSize: number;
+        mimeType: string;
+      }> = [];
+
+      if (files.length > 0 && !draftId) {
+        for (const file of files) {
+          const form = new FormData();
+          form.append("file", file);
+          form.append("sessionId", stagingSessionId);
+
+          const uploadRes = await fetch("/api/drafts/staging/upload", {
+            method: "POST",
+            body: form,
+          });
+
+          if (!uploadRes.ok) {
+            const err = await uploadRes.json();
+            throw new Error(err.error || "File upload failed");
+          }
+
+          const uploadData = await uploadRes.json();
+          stagingFiles.push(uploadData);
+        }
+      }
+
+      const body: Record<string, unknown> = {};
+      if (title) body.title = title;
+      if (description) body.description = description;
+      if (selectedCategory) body.category = selectedCategory;
+      if (Object.keys(categoryFieldValues).length > 0) body.category_fields = categoryFieldValues;
+      if (!draftId) body.stagingSessionId = stagingSessionId;
+      if (stagingFiles.length > 0) body.stagingFiles = stagingFiles;
+
+      const url = draftId ? `/api/drafts/${draftId}` : "/api/drafts";
+      const method = draftId ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save draft");
+      }
+
+      toast.success("Draft saved!");
+      router.push("/ideas/drafts");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save draft");
+    } finally {
+      setSavingDraft(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCategoryFieldErrors({});
@@ -148,7 +267,10 @@ export default function NewIdeaPage() {
 
       <Card className="border-border/60 shadow-none">
         <CardHeader>
-          <CardTitle className="text-3xl font-semibold tracking-tight">Submit a New Idea</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-3xl font-semibold tracking-tight">Submit a New Idea</CardTitle>
+            <SaveStatusIndicator status={saveStatus} />
+          </div>
           <CardDescription>Share your innovation proposal with the team</CardDescription>
         </CardHeader>
         <CardContent>
@@ -300,9 +422,19 @@ export default function NewIdeaPage() {
               <UploadProgress current={0} total={files.length} />
             )}
 
-            <Button type="submit" disabled={loading} className="w-full md:w-auto">
-              {loading ? "Submitting..." : "Submit Idea"}
-            </Button>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={savingDraft || loading}
+                onClick={handleSaveDraft}
+              >
+                {savingDraft ? "Saving..." : "Save Draft"}
+              </Button>
+              <Button type="submit" disabled={loading || savingDraft}>
+                {loading ? "Submitting..." : "Submit Idea"}
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

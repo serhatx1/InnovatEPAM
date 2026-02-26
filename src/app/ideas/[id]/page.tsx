@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AttachmentListDetail, type AttachmentDetail } from "@/components/ui/attachment-list-detail";
+import ReviewProgressTimeline from "@/components/review-progress-timeline";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  draft: "outline",
   submitted: "outline",
   under_review: "secondary",
   accepted: "default",
@@ -17,6 +19,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
 };
 
 const STATUS_LABEL: Record<string, string> = {
+  draft: "Draft",
   submitted: "Submitted",
   under_review: "Under Review",
   accepted: "Accepted",
@@ -179,6 +182,13 @@ export default async function IdeaDetailPage({
               </Card>
             </>
           )}
+
+          {/* Review Stage Progress */}
+          <Separator />
+          <div>
+            <h2 className="text-sm font-medium text-muted-foreground mb-2">Review Progress</h2>
+            <ReviewProgressTimeline ideaId={typedIdea.id} />
+          </div>
         </CardContent>
       </Card>
     </main>

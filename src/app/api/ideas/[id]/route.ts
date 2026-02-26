@@ -29,6 +29,11 @@ export async function GET(
     return NextResponse.json({ error: "Idea not found" }, { status: 404 });
   }
 
+  // Draft ideas are only visible to their owner
+  if (idea.status === "draft" && idea.user_id !== user.id) {
+    return NextResponse.json({ error: "Idea not found" }, { status: 404 });
+  }
+
   // Resolve signed URL for legacy attachment_url if present
   let signedAttachmentUrl: string | null = null;
   if (idea.attachment_url) {
