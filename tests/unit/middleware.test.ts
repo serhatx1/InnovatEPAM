@@ -88,6 +88,26 @@ describe("middleware", () => {
     const res = await middleware(req);
     expect(res.status).not.toBe(307);
   });
+
+  it("redirects unauthenticated requests to /ideas/drafts to /auth/login", async () => {
+    const req = createRequest("/ideas/drafts");
+    const res = await middleware(req);
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toContain("/auth/login");
+  });
+
+  it("allows authenticated access to /ideas/drafts paths", async () => {
+    vi.mocked(updateSession).mockResolvedValueOnce({
+      response: NextResponse.next(),
+      user: {
+        id: "user-1",
+      } as never,
+    });
+
+    const req = createRequest("/ideas/drafts");
+    const res = await middleware(req);
+    expect(res.status).not.toBe(307);
+  });
 });
 
 describe("middleware config", () => {

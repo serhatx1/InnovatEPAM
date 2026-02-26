@@ -28,6 +28,8 @@ describe("listIdeas", () => {
 
     const chainable = {
       select: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: ideas, error: null }),
       eq: vi.fn().mockReturnThis(),
     };
@@ -40,12 +42,16 @@ describe("listIdeas", () => {
     expect(data).toHaveLength(2);
     expect(data[0].title).toBe("Newer");
     expect(supabase.from).toHaveBeenCalledWith("idea");
+    expect(chainable.neq).toHaveBeenCalledWith("status", "draft");
+    expect(chainable.is).toHaveBeenCalledWith("deleted_at", null);
     expect(chainable.order).toHaveBeenCalledWith("created_at", { ascending: false });
   });
 
   it("scopes by userId when provided", async () => {
     const chainable = {
       select: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       eq: vi.fn().mockResolvedValue({ data: [], error: null }),
     };
@@ -60,6 +66,8 @@ describe("listIdeas", () => {
   it("returns empty array on null data", async () => {
     const chainable = {
       select: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: null, error: null }),
       eq: vi.fn().mockReturnThis(),
     };
@@ -73,6 +81,8 @@ describe("listIdeas", () => {
   it("returns error message on failure", async () => {
     const chainable = {
       select: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: null, error: { message: "DB error" } }),
       eq: vi.fn().mockReturnThis(),
     };

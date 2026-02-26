@@ -2,6 +2,23 @@ import { describe, it, expect } from "vitest";
 import { isValidTransition } from "@/lib/validation/status";
 
 describe("isValidTransition", () => {
+  // Draft transitions
+  it("allows draft → submitted", () => {
+    expect(isValidTransition("draft", "submitted")).toBe(true);
+  });
+
+  it("blocks draft → under_review", () => {
+    expect(isValidTransition("draft", "under_review")).toBe(false);
+  });
+
+  it("blocks draft → accepted", () => {
+    expect(isValidTransition("draft", "accepted")).toBe(false);
+  });
+
+  it("blocks draft → rejected", () => {
+    expect(isValidTransition("draft", "rejected")).toBe(false);
+  });
+
   // Valid transitions
   it("allows submitted → under_review", () => {
     expect(isValidTransition("submitted", "under_review")).toBe(true);

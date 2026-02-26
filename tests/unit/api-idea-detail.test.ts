@@ -288,4 +288,47 @@ describe("GET /api/ideas/[id]", () => {
     expect(body.attachments).toEqual([]);
     expect(body.signed_attachment_url).toBeNull();
   });
+
+  // ── Draft visibility tests ──────────────────────────────
+  it("returns draft to its owner", async () => {
+    authedUser("user-owner");
+    const idea = {
+      id: "draft-1",
+      title: "My Draft",
+      status: "draft",
+      user_id: "user-owner",
+      attachment_url: null,
+      category_fields: {},
+    };
+    mockGetIdeaById.mockResolvedValue({ data: idea, error: null });
+    mockGetAttachmentsByIdeaId.mockResolvedValue({ data: [], error: null });
+
+    const { GET } = await import("@/app/api/ideas/[id]/route");
+    const response = await GET(...makeRequest("draft-1"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.id).toBe("draft-1");
+    expect(body.status).toBe("draft");
+  });
+
+  it("returns 404 for non-owner accessing a draft", async () => {
+    authedUser("user-other");
+    const idea = {
+      id: "draft-1",
+      title: "Someone's Draft",
+      status: "draft",
+      user_id: "user-owner",
+      attachment_url: null,
+      category_fields: {},
+    };
+    mockGetIdeaById.mockResolvedValue({ data: idea, error: null });
+
+    const { GET } = await import("@/app/api/ideas/[id]/route");
+    const response = await GET(...makeRequest("draft-1"));
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("Idea not found");
+  });
 });

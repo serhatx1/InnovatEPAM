@@ -9,6 +9,12 @@ import {
   FILE_TYPE_LABELS,
   VALID_TRANSITIONS,
   CATEGORY_FIELD_DEFINITIONS,
+  AUTOSAVE_DEBOUNCE_MS,
+  DRAFT_STAGING_PREFIX,
+  REVIEW_WORKFLOW_MIN_STAGES,
+  REVIEW_WORKFLOW_MAX_STAGES,
+  REVIEW_TRANSITION_ACTIONS,
+  REVIEW_TERMINAL_OUTCOMES,
 } from "@/lib/constants";
 
 describe("IDEA_CATEGORIES", () => {
@@ -130,6 +136,16 @@ describe("FILE_TYPE_LABELS", () => {
 });
 
 describe("VALID_TRANSITIONS", () => {
+  it('allows draft → ["submitted"] only', () => {
+    expect(VALID_TRANSITIONS.draft).toEqual(["submitted"]);
+  });
+
+  it('does NOT allow draft → under_review, accepted, or rejected', () => {
+    expect(VALID_TRANSITIONS.draft).not.toContain("under_review");
+    expect(VALID_TRANSITIONS.draft).not.toContain("accepted");
+    expect(VALID_TRANSITIONS.draft).not.toContain("rejected");
+  });
+
   it("allows submitted → under_review, accepted, rejected", () => {
     expect(VALID_TRANSITIONS.submitted).toEqual(
       expect.arrayContaining(["under_review", "accepted", "rejected"])
@@ -148,6 +164,40 @@ describe("VALID_TRANSITIONS", () => {
 
   it("has no transitions from rejected (terminal)", () => {
     expect(VALID_TRANSITIONS.rejected).toEqual([]);
+  });
+});
+
+describe("review workflow constants", () => {
+  it("enforces 3..7 stage limits", () => {
+    expect(REVIEW_WORKFLOW_MIN_STAGES).toBe(3);
+    expect(REVIEW_WORKFLOW_MAX_STAGES).toBe(7);
+    expect(REVIEW_WORKFLOW_MIN_STAGES).toBeLessThan(REVIEW_WORKFLOW_MAX_STAGES);
+  });
+
+  it("defines all supported transition actions", () => {
+    expect(REVIEW_TRANSITION_ACTIONS).toEqual([
+      "advance",
+      "return",
+      "hold",
+      "terminal_accept",
+      "terminal_reject",
+    ]);
+  });
+
+  it("defines terminal outcomes", () => {
+    expect(REVIEW_TERMINAL_OUTCOMES).toEqual(["accepted", "rejected"]);
+  });
+});
+
+describe("AUTOSAVE_DEBOUNCE_MS", () => {
+  it("equals 3000", () => {
+    expect(AUTOSAVE_DEBOUNCE_MS).toBe(3000);
+  });
+});
+
+describe("DRAFT_STAGING_PREFIX", () => {
+  it('equals "staging/"', () => {
+    expect(DRAFT_STAGING_PREFIX).toBe("staging/");
   });
 });
 
