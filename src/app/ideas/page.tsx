@@ -114,7 +114,7 @@ export default async function IdeasListPage() {
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     {"submitter_display_name" in idea && idea.submitter_display_name && (
                       <>
-                        <span>{idea.submitter_display_name}</span>
+                        <span>{String(idea.submitter_display_name)}</span>
                         <span>·</span>
                       </>
                     )}
