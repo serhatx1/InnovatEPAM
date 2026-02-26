@@ -1,27 +1,37 @@
 <!--
 Sync Impact Report
 ===================
-Version change: 1.0.1 → 1.0.2
+Version change: 1.0.2 → 1.1.0
 Updated sections:
-  - Guiding Principles § Secure by Default (file upload constraints)
+  - Guiding Principles § Secure by Default (review workflow integrity and visibility)
+  - Testing Principles (review workflow conflict/visibility validation)
+  - Governance (explicit compliance checkpoints)
+Added sections:
+  - None
+Removed sections:
+  - None
 Reason:
-  - Align constitution with implemented multi-media support:
-    file limit raised to 10 MB, multi-file uploads (max 5),
-    expanded file types, dual client+server validation,
-    atomic upload-or-rollback strategy.
-  - Reference ADR-005 and ADR-006 for detailed rationale.
+  - Align governance with multi-stage review requirements:
+    optimistic concurrency for stage transitions and role-scoped
+    visibility during non-terminal review.
+  - Keep security and test obligations explicit and testable.
 Templates requiring updates:
-  - .github/agents/*.agent.md ✅ no changes needed
-  - .github/prompts/*.prompt.md ✅ no changes needed
+  - .specify/templates/spec-template.md ✅ reviewed, no changes required
+  - .specify/templates/plan-template.md ⚠ pending (template missing)
+  - .specify/templates/tasks-template.md ⚠ pending (template missing)
+  - .specify/templates/commands/*.md ⚠ pending (directory missing)
+  - README.md ✅ reviewed, no principle-reference changes required
+  - project-guide.md ✅ reviewed, no principle-reference changes required
 Follow-up TODOs:
-  - Add `tests/e2e/` and Playwright config before claiming E2E requirement
+  - TODO(TEMPLATE_SYNC): Add missing `.specify/templates/plan-template.md` and `.specify/templates/tasks-template.md`.
+  - TODO(COMMAND_TEMPLATES): Add `.specify/templates/commands/` command docs and align wording with updated governance.
 -->
 
 # InnovatEPAM Portal Constitution
 
 **Created**: 2026-02-24
-**Last Amended**: 2026-02-25
-**Version**: 1.0.2
+**Last Amended**: 2026-02-26
+**Version**: 1.1.0
 
 ## Purpose
 
@@ -50,6 +60,11 @@ that govern all development decisions.
    server boundaries using Zod schemas. Role-based authorization
    MUST be enforced via Supabase RLS policies AND server-side
    checks. Admin endpoints MUST verify role before any mutation.
+  Review-stage transitions MUST use optimistic concurrency and
+  MUST reject stale updates instead of overwriting current state.
+  During non-terminal review, submitter-facing views MUST hide
+  evaluator identity and evaluator comments unless explicitly
+  authorized by role policy.
    File uploads MUST be validated on both client (UX feedback)
    and server (security boundary): max 10 MB per file, max 5
    files per idea, max 25 MB total, restricted MIME types.
@@ -93,6 +108,8 @@ that govern all development decisions.
   not implementation details.
 - **Integration tests**: Test API route handlers with mocked
   Supabase client.
+- **Review workflow tests**: MUST include conflict handling
+  (`409` stale-write rejection) and role-scoped visibility checks.
 - **E2E smoke tests**: Optional until Playwright is configured.
 - **Coverage target**: 80%+ for core logic (`src/lib/`),
   best-effort for UI components.
@@ -118,6 +135,8 @@ This project follows **Spec-Driven, Test-Driven Development**:
   or redefinition; MINOR: new principle or expanded guidance;
   PATCH: clarifications and typo fixes).
 - All code changes MUST verify compliance with these principles.
+- Plans MUST include Constitution Check results before design and
+  after design updates when architecture or policy constraints change.
 - Constitution reviews occur when scope or tech stack changes.
 
 ---
