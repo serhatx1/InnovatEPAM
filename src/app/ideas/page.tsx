@@ -112,7 +112,7 @@ export default async function IdeasListPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    {"submitter_display_name" in idea && idea.submitter_display_name && (
+                    {"submitter_display_name" in idea && Boolean(idea.submitter_display_name) && (
                       <>
                         <span>{String(idea.submitter_display_name)}</span>
                         <span>·</span>
