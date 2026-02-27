@@ -20,10 +20,10 @@ export async function checkScoringEligibility(
   ideaId: string,
   evaluatorId: string
 ): Promise<ScoringEligibilityResult> {
-  // 1. Fetch the idea
+  // 1. Fetch the idea (include status for legacy flow check)
   const { data: idea, error: ideaError } = await supabase
     .from("idea")
-    .select("id, user_id, deleted_at")
+    .select("id, user_id, deleted_at, status")
     .eq("id", ideaId)
     .maybeSingle();
 
@@ -43,6 +43,11 @@ export async function checkScoringEligibility(
     .maybeSingle();
 
   if (!stageState) {
+    // Support legacy flow: idea moved to under_review via status update
+    // without a stage state row being created
+    if (idea.status === "under_review") {
+      return { eligible: true };
+    }
     return { eligible: false, reason: "Idea is not under review", status: 400 };
   }
 

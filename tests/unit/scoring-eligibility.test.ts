@@ -104,9 +104,9 @@ describe("checkScoringEligibility", () => {
     expect(result.status).toBe(403);
   });
 
-  it("blocks scoring when idea has no stage state (not under review)", async () => {
+  it("blocks scoring when idea has no stage state and status is not under_review", async () => {
     supabase._ideaChain.maybeSingle.mockResolvedValue({
-      data: { id: "idea-1", user_id: "submitter-1", deleted_at: null },
+      data: { id: "idea-1", user_id: "submitter-1", deleted_at: null, status: "submitted" },
       error: null,
     });
     supabase._stageChain.maybeSingle.mockResolvedValue({ data: null, error: null });
@@ -115,6 +115,18 @@ describe("checkScoringEligibility", () => {
     expect(result.eligible).toBe(false);
     expect(result.reason).toBe("Idea is not under review");
     expect(result.status).toBe(400);
+  });
+
+  it("allows scoring when idea status is under_review via legacy flow (no stage state)", async () => {
+    supabase._ideaChain.maybeSingle.mockResolvedValue({
+      data: { id: "idea-1", user_id: "submitter-1", deleted_at: null, status: "under_review" },
+      error: null,
+    });
+    supabase._stageChain.maybeSingle.mockResolvedValue({ data: null, error: null });
+
+    const result = await checkScoringEligibility(supabase as any, "idea-1", "eval-1");
+    expect(result.eligible).toBe(true);
+    expect(result.reason).toBeUndefined();
   });
 
   it("blocks scoring when idea query errors", async () => {
