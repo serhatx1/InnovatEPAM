@@ -141,15 +141,7 @@ export default async function AdminReviewPage({
         <h1 className="text-3xl font-semibold tracking-tight">Admin Review Dashboard</h1>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">Review actionable submissions and finalize decisions.</p>
-      <div className="flex gap-2 mt-2">
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/">Home</Link>
-        </Button>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/admin/review/workflow">⚙ Workflow Config</Link>
-        </Button>
-        <ScoreSortToggle />
-      </div>
+    
 
       <Separator className="my-6" />
 
