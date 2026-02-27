@@ -46,7 +46,7 @@ export interface IdeaFormProps {
   initialData?: IdeaFormInitialData;
   draftId?: string;
   stagingSessionId: string;
-  onSaveDraft: (data: Record<string, unknown>) => void;
+  onSaveDraft: (data: Record<string, unknown>, files: File[]) => void;
   onSubmit: (formData: FormData) => void;
 }
 
@@ -172,7 +172,7 @@ export function IdeaForm({
     if (description) body.description = description;
     if (selectedCategory) body.category = selectedCategory;
     if (Object.keys(categoryFieldValues).length > 0) body.category_fields = categoryFieldValues;
-    onSaveDraft(body);
+    onSaveDraft(body, files);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {

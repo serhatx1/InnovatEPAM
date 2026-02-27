@@ -184,15 +184,22 @@ describe("draft query functions", () => {
     it("sets deleted_at timestamp", async () => {
       const deletedDraft = { id: "draft-1", deleted_at: "2026-02-26T00:00:00Z" };
       const builder = createMockQueryBuilder(deletedDraft);
-      const supabase = createMockSupabase(builder);
+      const supabase = {
+        ...createMockSupabase(builder),
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-1" } } }),
+        },
+        rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
+      } as any;
 
       const { softDeleteDraft } = await import("@/lib/queries/drafts");
       const result = await softDeleteDraft(supabase, "draft-1");
 
-      expect(builder.update).toHaveBeenCalledWith(
-        expect.objectContaining({ deleted_at: expect.any(String) })
-      );
-      expect(result.data).toEqual(deletedDraft);
+      expect(supabase.rpc).toHaveBeenCalledWith("soft_delete_draft", {
+        draft_id: "draft-1",
+        owner_id: "user-1",
+      });
+      expect(result.error).toBeNull();
     });
   });
 

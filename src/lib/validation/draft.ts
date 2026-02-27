@@ -6,10 +6,10 @@ import { ideaSchema } from "@/lib/validation/idea";
  * Used when auto-saving or manually saving a draft.
  */
 export const draftSaveSchema = z.object({
-  title: z.string().max(100, "Title must not exceed 100 characters").optional().default(""),
-  description: z.string().max(1000, "Description must not exceed 1000 characters").optional().default(""),
-  category: z.string().optional().default(""),
-  category_fields: z.record(z.string(), z.unknown()).optional().default({}),
+  title: z.string().max(100, "Title must not exceed 100 characters").nullish().transform((v) => v ?? ""),
+  description: z.string().max(1000, "Description must not exceed 1000 characters").nullish().transform((v) => v ?? ""),
+  category: z.string().nullish().transform((v) => v ?? ""),
+  category_fields: z.record(z.string(), z.unknown()).nullish().transform((v) => v ?? {}),
 });
 
 export type DraftSaveInput = z.infer<typeof draftSaveSchema>;

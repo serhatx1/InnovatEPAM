@@ -151,9 +151,10 @@ export default function NewIdeaPage() {
 
   async function handleSaveDraft() {
     setSavingDraft(true);
+    setAutoSaveEnabled(false);
 
     try {
-      // Upload files to staging first (if any and no draft yet)
+      // Upload files to staging first (if any)
       const stagingFiles: Array<{
         storagePath: string;
         originalFileName: string;
@@ -161,7 +162,7 @@ export default function NewIdeaPage() {
         mimeType: string;
       }> = [];
 
-      if (files.length > 0 && !draftId) {
+      if (files.length > 0) {
         for (const file of files) {
           const form = new FormData();
           form.append("file", file);
@@ -187,11 +188,12 @@ export default function NewIdeaPage() {
       if (description) body.description = description;
       if (selectedCategory) body.category = selectedCategory;
       if (Object.keys(categoryFieldValues).length > 0) body.category_fields = categoryFieldValues;
-      if (!draftId) body.stagingSessionId = stagingSessionId;
+      body.stagingSessionId = stagingSessionId;
       if (stagingFiles.length > 0) body.stagingFiles = stagingFiles;
 
-      const url = draftId ? `/api/drafts/${draftId}` : "/api/drafts";
-      const method = draftId ? "PATCH" : "POST";
+      const currentDraftId = draftId ?? autoSaveDraftId;
+      const url = currentDraftId ? `/api/drafts/${currentDraftId}` : "/api/drafts";
+      const method = currentDraftId ? "PATCH" : "POST";
 
       const res = await fetch(url, {
         method,
@@ -209,6 +211,7 @@ export default function NewIdeaPage() {
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save draft");
+      setAutoSaveEnabled(true);
     } finally {
       setSavingDraft(false);
     }

@@ -87,14 +87,49 @@ export default function DraftEditPage({
   }, [params, router]);
 
   const handleSaveDraft = useCallback(
-    async (data: Record<string, unknown>) => {
+    async (data: Record<string, unknown>, newFiles: File[]) => {
       if (!draftId) return;
 
       try {
+        // Upload new files to staging first
+        const stagingFileMeta: Array<{
+          storagePath: string;
+          originalFileName: string;
+          fileSize: number;
+          mimeType: string;
+        }> = [];
+
+        if (newFiles.length > 0) {
+          for (const file of newFiles) {
+            const form = new FormData();
+            form.append("file", file);
+            form.append("sessionId", stagingSessionId);
+
+            const uploadRes = await fetch("/api/drafts/staging/upload", {
+              method: "POST",
+              body: form,
+            });
+
+            if (!uploadRes.ok) {
+              const err = await uploadRes.json();
+              throw new Error(err.error || "File upload failed");
+            }
+
+            const uploadData = await uploadRes.json();
+            stagingFileMeta.push(uploadData);
+          }
+        }
+
+        const patchBody: Record<string, unknown> = { ...data };
+        if (stagingFileMeta.length > 0) {
+          patchBody.stagingSessionId = stagingSessionId;
+          patchBody.stagingFiles = stagingFileMeta;
+        }
+
         const res = await fetch(`/api/drafts/${draftId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+          body: JSON.stringify(patchBody),
         });
 
         if (!res.ok) {
@@ -107,7 +142,7 @@ export default function DraftEditPage({
         toast.error(err instanceof Error ? err.message : "Failed to save draft");
       }
     },
-    [draftId]
+    [draftId, stagingSessionId]
   );
 
   /**

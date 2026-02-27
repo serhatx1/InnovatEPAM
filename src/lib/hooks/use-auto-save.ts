@@ -45,11 +45,17 @@ export function useAutoSave({
   onSaveRef.current = onSave;
   const stagingRef = useRef(stagingSessionId);
   stagingRef.current = stagingSessionId;
+  // Keep a ref in sync so doSave always reads the latest draftId,
+  // avoiding stale-closure races when a timer fires between state
+  // update and React re-render.
+  const draftIdRef = useRef<string | null>(internalDraftId);
+  draftIdRef.current = internalDraftId;
 
   // Sync external draftId changes
   useEffect(() => {
     if (externalDraftId) {
       setInternalDraftId(externalDraftId);
+      draftIdRef.current = externalDraftId;
     }
   }, [externalDraftId]);
 
@@ -62,10 +68,11 @@ export function useAutoSave({
       try {
         const result = await onSaveRef.current(
           currentData,
-          internalDraftId,
+          draftIdRef.current,
           stagingRef.current
         );
         setInternalDraftId(result.id);
+        draftIdRef.current = result.id;
         lastSavedRef.current = JSON.stringify(currentData);
         setSaveStatus("saved");
       } catch {
@@ -74,7 +81,7 @@ export function useAutoSave({
         isSavingRef.current = false;
       }
     },
-    [internalDraftId]
+    [] // stable — reads latest values from refs
   );
 
   useEffect(() => {
